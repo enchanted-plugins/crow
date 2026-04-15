@@ -1,0 +1,11 @@
+{
+  "name": "vigil-session-memory",
+  "description": "Session continuity graph for compaction survival. Preserves decision history and learned preferences.",
+  "version": "1.0.0",
+  "author": { "name": "enchanted-plugins" },
+  "license": "MIT",
+  "keywords": ["session", "memory", "compaction", "graph", "continuity", "learning"],
+  "commands": ["./commands/session.md"],
+  "skills": ["./skills/session-awareness/"],
+  "agents": "./agents/"
+}

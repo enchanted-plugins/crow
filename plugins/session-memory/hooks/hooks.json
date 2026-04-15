@@ -1,0 +1,16 @@
+{
+  "description": "Vigil session-memory: builds continuity graph and persists learnings before compaction",
+  "hooks": {
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact/save-session.sh\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
