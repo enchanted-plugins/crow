@@ -21,23 +21,66 @@ The review-and-comprehension loop eats 40-60% of every Claude Code session:
 
 ## How It Works
 
-```
-PreToolUse                    PostToolUse                   PreCompact
-    │                             │                             │
-    ▼                             ▼                             ▼
-┌──────────────┐          ┌──────────────┐             ┌──────────────┐
-│ decision-gate│          │change-tracker│             │session-memory│
-│              │          │              │             │              │
-│  V3 InfoGain │──→ gate  │ V1 SemDiff   │──→ track    │ V4 ContGraph │
-│  V5 AdvSelf  │   review │ V2 BayesTrust│──→ score    │ V6 Gauss     │
-└──────────────┘          └──────────────┘             └──────────────┘
-    │                             │                             │
-    ▼                             ▼                             ▼
- advisory                   changes.jsonl               session-graph.json
- (stderr)                   trust.json                  learnings.json
+```mermaid
+graph TD
+    CC(["🔧 Claude Code — File Changes"])
+
+    CC -->|PreToolUse| DG
+    CC -->|PostToolUse| CT
+    CC -->|PostToolUse| TS
+    CC -->|PreCompact| SM
+
+    subgraph DG["decision-gate"]
+        DG_V3["V3 Information-Gain Ordering<br/><small>prioritize what to review</small>"]
+        DG_V5["V5 Adversarial Self-Review<br/><small>red-team low-trust changes</small>"]
+    end
+
+    subgraph CT["change-tracker"]
+        CT_V1["V1 Semantic Diff Compression<br/><small>classify and cluster changes</small>"]
+    end
+
+    subgraph TS["trust-scorer"]
+        TS_V2["V2 Bayesian Trust Model<br/><small>prior → posterior per change</small>"]
+    end
+
+    subgraph SM["session-memory"]
+        SM_V4["V4 Continuity Graph<br/><small>decision history + preferences</small>"]
+        SM_V6["V6 Gauss Accumulation<br/><small>cross-session learning</small>"]
+    end
+
+    DG -->|"advisory<br/>(stderr)"| OUT_DG(["gate review"])
+    CT -->|"changes.jsonl"| OUT_CT(["tracked"])
+    TS -->|"trust.json"| OUT_TS(["scored"])
+    SM -->|"session-graph.json<br/>learnings.json"| OUT_SM(["preserved"])
+
+    style CC fill:#0d1117,stroke:#bc8cff,color:#e6edf3
+    style DG fill:#161b22,stroke:#58a6ff,color:#e6edf3
+    style CT fill:#161b22,stroke:#3fb950,color:#e6edf3
+    style TS fill:#161b22,stroke:#d29922,color:#e6edf3
+    style SM fill:#161b22,stroke:#bc8cff,color:#e6edf3
 ```
 
 Each plugin owns one concern. No overlap. No dependencies between plugins.
+
+### Session Lifecycle
+
+```mermaid
+graph LR
+    A(["Session Start"]) --> B["File Change"]
+    B --> C{"PreToolUse<br/>decision-gate"}
+    C -->|"trust check"| D["Tool Executes"]
+    D --> E{"PostToolUse<br/>change-tracker<br/>trust-scorer"}
+    E --> B
+    B -.->|"Context full"| F["⚠️ Compaction"]
+    F --> G{"PreCompact<br/>session-memory"}
+    G -->|"session-graph.json"| H["Context Wiped"]
+    H --> I["restorer agent"]
+    I --> J(["Session Continues"])
+
+    style F fill:#f85149,color:#fff
+    style G fill:#d29922,color:#0d1117
+    style I fill:#3fb950,color:#0d1117
+```
 
 ## The Science Behind Vigil
 
@@ -209,6 +252,12 @@ Review the uncertain files first. Skip the ones where trust is already decided.
 | Session continuity | graph + learnings | — | — | — | — |
 | Cross-session learning | Gauss EMA | — | — | — | — |
 | Dependencies | bash + jq | Node | Node + MCP | Python | API |
+
+## Architecture
+
+Interactive architecture explorer with plugin diagrams, agent cards, and data flow:
+
+**[docs/architecture/](docs/architecture/)** — auto-generated from the codebase. Run `python docs/architecture/generate.py` to regenerate.
 
 ## Contributing
 

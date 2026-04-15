@@ -1,0 +1,17 @@
+graph TD
+    start(["Session Start"]) --> turns
+    subgraph turns["Active Session"]
+        t1["Turn N: Tool Call"]
+        t1 --> pre["PreToolUse<br/>decision-gate"]
+        pre --> exec["Tool Executes"]
+        exec --> post["PostToolUse<br/>change-tracker, trust-scorer"]
+        post --> t1
+    end
+    turns -->|"Context full"| compact["⚠️ Compaction"]
+    compact --> precompact["PreCompact<br/>session-memory"]
+    precompact --> wipe["Context Wiped"]
+    wipe --> restore["Restore context"]
+    restore --> resume(["Session Continues"])
+    style compact fill:#f85149,color:#0d1117
+    style precompact fill:#d29922,color:#0d1117
+    style restore fill:#3fb950,color:#0d1117

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Allay — Architecture Explorer</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 0;
+  }
+  .brand-bar { height: 3px; background: #39d353; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+  h1 { font-size: 32px; margin-bottom: 4px; }
+  h1 span { color: #8b949e; font-size: 14px; font-weight: 400; margin-left: 12px; }
+  .subtitle { color: #484f58; font-size: 12px; margin-bottom: 32px; }
+  h2 {
+    font-size: 18px;
+    margin: 32px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #30363d;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 0;
+    border-bottom: 1px solid #30363d;
+  }
+  .tab {
+    padding: 8px 16px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    color: #8b949e;
+    font-size: 13px;
+    background: transparent;
+    transition: all 0.15s;
+  }
+  .tab:hover { color: #e6edf3; background: #161b22; }
+  .tab.active {
+    color: #e6edf3;
+    background: #161b22;
+    border-color: #30363d;
+    border-bottom-color: #161b22;
+    margin-bottom: -1px;
+  }
+  .diagram-panel {
+    display: none;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 24px;
+    min-height: 300px;
+    overflow-x: auto;
+  }
+  .diagram-panel.active { display: block; }
+  .mermaid { background: transparent; }
+  .mermaid svg { max-width: 100%; }
+  .plugins-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .plugin-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .plugin-card h3 {
+    font-size: 16px;
+    margin-bottom: 4px;
+    color: #58a6ff;
+  }
+  .plugin-card .desc {
+    color: #8b949e;
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+  .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #484f58;
+    margin-top: 12px;
+    margin-bottom: 4px;
+  }
+  .hook {
+    font-size: 12px;
+    padding: 4px 0;
+    border-bottom: 1px solid #21262d;
+  }
+  .phase {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    background: #1c2333;
+    color: #58a6ff;
+  }
+  .matcher { color: #3fb950; font-size: 11px; }
+  .item { font-size: 12px; padding: 2px 0; }
+  .dim { color: #484f58; }
+  code {
+    background: #1c2333;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #e6edf3;
+  }
+  .footer {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid #30363d;
+    font-size: 11px;
+    color: #484f58;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+<div class="brand-bar"></div>
+<div class="container">
+  <h1>Allay <span>Architecture Explorer</span></h1>
+  <div class="subtitle">Auto-generated from codebase — 2026-04-15 05:26 UTC</div>
+
+  <h2>System Diagrams</h2>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('highlevel')">High Level</div>
+    <div class="tab" onclick="showTab('hooks')">Hook Detail</div>
+    <div class="tab" onclick="showTab('dataflow')">Data Flow</div>
+    <div class="tab" onclick="showTab('lifecycle')">Session Lifecycle</div>
+  </div>
+
+  <div id="panel-highlevel" class="diagram-panel active">
+    <pre class="mermaid">graph TD
+    CC["Claude Code<br/>Tool Calls"]
+    change_tracker["change-tracker<br/><small>PostToolUse</small>"]
+    CC --> change_tracker
+    change_tracker_out(["state/metrics.jsonl"])
+    change_tracker --> change_tracker_out
+    style change_tracker fill:#161b22,stroke:#3fb950,color:#e6edf3
+    decision_gate["decision-gate<br/><small>PreToolUse</small>"]
+    CC --> decision_gate
+    decision_gate_out(["state/metrics.jsonl"])
+    decision_gate --> decision_gate_out
+    style decision_gate fill:#161b22,stroke:#58a6ff,color:#e6edf3
+    session_memory["session-memory<br/><small>PreCompact</small>"]
+    CC --> session_memory
+    session_memory_out(["state/metrics.jsonl"])
+    session_memory --> session_memory_out
+    style session_memory fill:#161b22,stroke:#d29922,color:#e6edf3
+    trust_scorer["trust-scorer<br/><small>PostToolUse</small>"]
+    CC --> trust_scorer
+    trust_scorer_out(["state/metrics.jsonl"])
+    trust_scorer --> trust_scorer_out
+    style trust_scorer fill:#161b22,stroke:#3fb950,color:#e6edf3
+    style CC fill:#0d1117,stroke:#bc8cff,color:#e6edf3</pre>
+  </div>
+  <div id="panel-hooks" class="diagram-panel">
+    <pre class="mermaid">graph LR
+    subgraph change_tracker["change-tracker"]
+        change_tracker_h0_trigger["PostToolUse<br/>Write | Edit | MultiEdit"]
+        change_tracker_h0_script["track-change.sh<br/><small>timeout: 15s</small>"]
+        change_tracker_h0_trigger --> change_tracker_h0_script
+    end
+    subgraph decision_gate["decision-gate"]
+        decision_gate_h0_trigger["PreToolUse<br/>Write | Edit | MultiEdit"]
+        decision_gate_h0_script["gate-change.sh<br/><small>timeout: 10s</small>"]
+        decision_gate_h0_trigger --> decision_gate_h0_script
+    end
+    subgraph session_memory["session-memory"]
+        session_memory_h0_trigger["PreCompact<br/>*"]
+        session_memory_h0_script["save-session.sh<br/><small>timeout: 30s</small>"]
+        session_memory_h0_trigger --> session_memory_h0_script
+    end
+    subgraph trust_scorer["trust-scorer"]
+        trust_scorer_h0_trigger["PostToolUse<br/>Write | Edit | MultiEdit"]
+        trust_scorer_h0_script["score-change.sh<br/><small>timeout: 15s</small>"]
+        trust_scorer_h0_trigger --> trust_scorer_h0_script
+    end</pre>
+  </div>
+  <div id="panel-dataflow" class="diagram-panel">
+    <pre class="mermaid">graph TB
+    subgraph inputs["Tool Calls"]
+        Bash["Bash"]
+        Read["Read"]
+        Write["Write / Edit"]
+        Glob["Glob / Grep"]
+    end
+    change_tracker_metrics["change-tracker/state/metrics.jsonl<br/><small></small>"]
+    Write --> change_tracker_metrics
+    decision_gate_metrics["decision-gate/state/metrics.jsonl<br/><small></small>"]
+    Write --> decision_gate_metrics
+    session_memory_metrics["session-memory/state/metrics.jsonl<br/><small></small>"]
+    trust_scorer_metrics["trust-scorer/state/metrics.jsonl<br/><small></small>"]
+    Write --> trust_scorer_metrics
+    report["📊 /allay:report<br/>Aggregates all metrics"]
+    change_tracker_metrics --> report
+    decision_gate_metrics --> report
+    session_memory_metrics --> report
+    trust_scorer_metrics --> report</pre>
+  </div>
+  <div id="panel-lifecycle" class="diagram-panel">
+    <pre class="mermaid">graph TD
+    start(["Session Start"]) --> turns
+    subgraph turns["Active Session"]
+        t1["Turn N: Tool Call"]
+        t1 --> pre["PreToolUse<br/>decision-gate"]
+        pre --> exec["Tool Executes"]
+        exec --> post["PostToolUse<br/>change-tracker, trust-scorer"]
+        post --> t1
+    end
+    turns -->|"Context full"| compact["⚠️ Compaction"]
+    compact --> precompact["PreCompact<br/>session-memory"]
+    precompact --> wipe["Context Wiped"]
+    wipe --> restore["Restore context"]
+    restore --> resume(["Session Continues"])
+    style compact fill:#f85149,color:#0d1117
+    style precompact fill:#d29922,color:#0d1117
+    style restore fill:#3fb950,color:#0d1117</pre>
+  </div>
+
+  <h2>Plugin Components</h2>
+  <div class="plugins-grid">
+    
+        <div class="plugin-card">
+          <h3>change-tracker</h3>
+          <p class="desc">Tracks every file change with semantic diff compression and change classification.</p>
+          <div class="section-label">Hooks</div>
+          <div class="hook"><span class="phase">PostToolUse</span> <span class="matcher">Write|Edit|MultiEdit</span> → <code>track-change.sh</code> <span class="dim">(15s)</span></div>
+          <div class="section-label">Skills</div>
+          <div class="item"><strong>change-awareness</strong></div>
+          <div class="section-label">Agents</div>
+          <div class="item"><strong>vigil-classifier</strong> <span class="dim">(haiku, fork)</span></div>
+          <div class="section-label">Commands</div>
+          <div class="item"><code>vigil:changes</code></div>
+        </div>
+        <div class="plugin-card">
+          <h3>decision-gate</h3>
+          <p class="desc">Per-change review with information-gain ordering and adversarial self-review for low-trust changes.</p>
+          <div class="section-label">Hooks</div>
+          <div class="hook"><span class="phase">PreToolUse</span> <span class="matcher">Write|Edit|MultiEdit</span> → <code>gate-change.sh</code> <span class="dim">(10s)</span></div>
+          <div class="section-label">Skills</div>
+          <div class="item"><strong>review-guidance</strong></div>
+          <div class="section-label">Agents</div>
+          <div class="item"><strong>vigil-adversary</strong> <span class="dim">(sonnet, fork)</span></div>
+          <div class="section-label">Commands</div>
+          <div class="item"><code>vigil:review</code></div>
+        </div>
+        <div class="plugin-card">
+          <h3>session-memory</h3>
+          <p class="desc">Session continuity graph for compaction survival. Preserves decision history and learned preferences.</p>
+          <div class="section-label">Hooks</div>
+          <div class="hook"><span class="phase">PreCompact</span> <span class="matcher">*</span> → <code>save-session.sh</code> <span class="dim">(30s)</span></div>
+          <div class="section-label">Skills</div>
+          <div class="item"><strong>session-awareness</strong></div>
+          <div class="section-label">Agents</div>
+          <div class="item"><strong>vigil-restorer</strong> <span class="dim">(haiku, fork)</span></div>
+          <div class="section-label">Commands</div>
+          <div class="item"><code>vigil:session</code></div>
+        </div>
+        <div class="plugin-card">
+          <h3>trust-scorer</h3>
+          <p class="desc">Bayesian trust scoring of each change with prior-based confidence and posterior updates.</p>
+          <div class="section-label">Hooks</div>
+          <div class="hook"><span class="phase">PostToolUse</span> <span class="matcher">Write|Edit|MultiEdit</span> → <code>score-change.sh</code> <span class="dim">(15s)</span></div>
+          <div class="section-label">Skills</div>
+          <div class="item"><strong>trust-assessment</strong></div>
+          <div class="section-label">Agents</div>
+          <div class="item"><strong>vigil-auditor</strong> <span class="dim">(haiku, fork)</span></div>
+          <div class="section-label">Commands</div>
+          <div class="item"><code>vigil:trust</code></div>
+        </div>
+  </div>
+
+  <div class="footer">
+    <span>Generated by docs/architecture/generate.py from plugin.json, hooks.json, SKILL.md, agents/*.md</span>
+    <span>Allay v2.0.0</span>
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true,
+      background: '#161b22',
+      primaryColor: '#1c2333',
+      primaryTextColor: '#e6edf3',
+      primaryBorderColor: '#30363d',
+      lineColor: '#484f58',
+      secondaryColor: '#161b22',
+      tertiaryColor: '#1c2333',
+    }
+  });
+
+  function showTab(id) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.diagram-panel').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('panel-' + id).classList.add('active');
+
+    // Re-render mermaid for newly visible panels
+    const panel = document.getElementById('panel-' + id);
+    const pre = panel.querySelector('.mermaid');
+    if (pre && !pre.getAttribute('data-processed')) {
+      mermaid.run({ nodes: [pre] });
+    }
+  }
+</script>
+</body>
+</html>

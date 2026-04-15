@@ -1,0 +1,21 @@
+graph LR
+    subgraph change_tracker["change-tracker"]
+        change_tracker_h0_trigger["PostToolUse<br/>Write | Edit | MultiEdit"]
+        change_tracker_h0_script["track-change.sh<br/><small>timeout: 15s</small>"]
+        change_tracker_h0_trigger --> change_tracker_h0_script
+    end
+    subgraph decision_gate["decision-gate"]
+        decision_gate_h0_trigger["PreToolUse<br/>Write | Edit | MultiEdit"]
+        decision_gate_h0_script["gate-change.sh<br/><small>timeout: 10s</small>"]
+        decision_gate_h0_trigger --> decision_gate_h0_script
+    end
+    subgraph session_memory["session-memory"]
+        session_memory_h0_trigger["PreCompact<br/>*"]
+        session_memory_h0_script["save-session.sh<br/><small>timeout: 30s</small>"]
+        session_memory_h0_trigger --> session_memory_h0_script
+    end
+    subgraph trust_scorer["trust-scorer"]
+        trust_scorer_h0_trigger["PostToolUse<br/>Write | Edit | MultiEdit"]
+        trust_scorer_h0_script["score-change.sh<br/><small>timeout: 15s</small>"]
+        trust_scorer_h0_trigger --> trust_scorer_h0_script
+    end

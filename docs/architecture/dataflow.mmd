@@ -1,0 +1,19 @@
+graph TB
+    subgraph inputs["Tool Calls"]
+        Bash["Bash"]
+        Read["Read"]
+        Write["Write / Edit"]
+        Glob["Glob / Grep"]
+    end
+    change_tracker_metrics["change-tracker/state/metrics.jsonl<br/><small></small>"]
+    Write --> change_tracker_metrics
+    decision_gate_metrics["decision-gate/state/metrics.jsonl<br/><small></small>"]
+    Write --> decision_gate_metrics
+    session_memory_metrics["session-memory/state/metrics.jsonl<br/><small></small>"]
+    trust_scorer_metrics["trust-scorer/state/metrics.jsonl<br/><small></small>"]
+    Write --> trust_scorer_metrics
+    report["📊 /allay:report<br/>Aggregates all metrics"]
+    change_tracker_metrics --> report
+    decision_gate_metrics --> report
+    session_memory_metrics --> report
+    trust_scorer_metrics --> report
