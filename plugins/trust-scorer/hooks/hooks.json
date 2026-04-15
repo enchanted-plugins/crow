@@ -1,0 +1,17 @@
+{
+  "description": "Vigil trust-scorer: Bayesian trust update after every file change",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use/score-change.sh\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}
