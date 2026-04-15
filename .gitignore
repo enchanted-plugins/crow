@@ -1,0 +1,25 @@
+# Vigil state files (runtime-generated)
+plugins/*/state/changes.jsonl
+plugins/*/state/metrics.jsonl
+plugins/*/state/trust.json
+plugins/*/state/session-graph.json
+plugins/*/state/session-summary.md
+plugins/*/state/learnings.json
+
+# Lock directories
+*.lock/
+
+# Temp files
+*.tmp
+
+# Secrets
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
