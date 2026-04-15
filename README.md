@@ -93,7 +93,14 @@ Raw diffs are noise. Vigil classifies each change by type and clusters related c
 Change types: `source_code`, `config_change`, `test_change`, `documentation`, `schema_change`, `dependency_change`.
 Impact radius: local (1 file), module (2-5 files), systemic (6+ files).
 
-$$\text{classify}(f) = \begin{cases} \text{config} & f \in \{*.json, *.yaml, *.env\} \\ \text{test} & f \in \{*test*, *spec*\} \\ \text{schema} & f \in \{*.sql, */migration/*\} \\ \text{source} & \text{otherwise} \end{cases}$$
+$$
+\text{classify}(f) = \begin{cases}
+\text{config} & f \in \lbrace\texttt{.json},\texttt{.yaml},\texttt{.env}\rbrace \\
+\text{test} & f \in \lbrace\texttt{test},\texttt{spec}\rbrace \\
+\text{schema} & f \in \lbrace\texttt{.sql},\texttt{migration}\rbrace \\
+\text{source} & \text{otherwise}
+\end{cases}
+$$
 
 ### V2. Bayesian Trust Scoring (Trust Scorer)
 
