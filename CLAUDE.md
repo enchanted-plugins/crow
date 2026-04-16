@@ -1,85 +1,66 @@
-# Hornet — What You Need To Know
+# Hornet — Agent Contract
 
-You have Hornet installed. It tracks every file you change, scores each change for trust via a Bayesian model, orders what to review by information gain, and preserves the decision graph across compaction.
+Audience: Claude. Hornet watches file changes, scores each for trust with a Bayesian model, orders reviews by information gain, and preserves the decision graph across compaction.
 
-## What's happening behind the scenes
+## Lifecycle
 
-Every time you use Write, Edit, or MultiEdit:
-1. **change-tracker** (PostToolUse) classifies the change (source / config / test / docs / schema / dependency), clusters related edits, writes `changes.jsonl` (V1 — Semantic Diff Compression)
-2. **trust-scorer** (PostToolUse) updates a Beta-Bernoulli posterior per file and writes `trust.json` (V2 — Bayesian Trust Scoring)
-3. **decision-gate** (PreToolUse) ranks pending reviews by information gain and may emit an advisory to stderr; for trust < 0.4 it generates targeted adversarial questions (V3 — Information-Gain Ordering, V5 — Adversarial Self-Review)
+| Plugin | Hook | Purpose |
+|--------|------|---------|
+| decision-gate | PreToolUse (Write\|Edit\|MultiEdit) | Advisory gate; adversarial questions for trust < 0.4 (V3, V5) |
+| change-tracker | PostToolUse (Write\|Edit\|MultiEdit) | Semantic diff compression + classification (V1) |
+| trust-scorer | PostToolUse (Write\|Edit\|MultiEdit) | Beta-Bernoulli posterior update (V2) |
+| session-memory | PreCompact | Continuity graph + EMA learnings (V4, V6) |
 
-Before compaction:
-4. **session-memory** (PreCompact) builds a continuity graph (files, decisions, edges) and writes `session-graph.json` + `session-summary.md` (V4 — Continuity Graph)
+## Algorithms
 
-Across sessions:
-5. **Gauss Learning** (V6) updates per-type trust priors via EMA (α=0.3) in `learnings.json` — over time Hornet adapts to this developer's patterns.
+V1 Semantic Diff Compression · V2 Bayesian Trust Scoring · V3 Information-Gain Ordering · V4 Session Continuity Graph · V5 Adversarial Self-Review · V6 Gauss Learning. Derivations: `docs/science/README.md`.
 
-## Trust scores — what they mean
+## Behavioral contracts
 
-| Score | Meaning | Your action |
-|-------|---------|-------------|
-| 0.8+ | High trust — safe pattern | No review needed |
-| 0.4–0.8 | Moderate — uncertain | Optional review; mention to developer |
-| 0.2–0.4 | Low — suspicious pattern | Pause. Explain what you changed and why |
-| < 0.2 | Critical — likely wrong | Stop writing this file. Surface to developer before proceeding |
+Markers: **[H]** hook-enforced · **[A]** advisory.
 
-Priors: all files start at Beta(2, 2) (mean 0.5). Docs/tests push trust up; config/schema push it down. Reverts halve the likelihood. Sensitive files (.env, credentials, secrets) start lower. Wildcard CORS, auth removals, and deleted test assertions drop trust fast.
+1. **[H] IMPORTANT — Acknowledge the `[Hornet]` stderr.** Name what was flagged, its trust score, and the change type. Silence after an advisory is a contract violation.
+2. **[A] YOU MUST pause at trust < 0.4.** Explain what you changed and why. Do not continue writing the same file without addressing the flag. If decision-gate (V5) emitted adversarial questions, answer them specifically — they're generated from the diff, not boilerplate.
+3. **[A] YOU MUST stop at trust < 0.2.** Surface to the developer: "Hornet flagged this as critical. Here's what I changed and what could go wrong." Do not resume until acknowledged.
+4. **[A] Respect IG ordering.** `IG(trust) = -p log p - (1-p) log(1-p)` peaks at trust = 0.5 — uncertain changes get reviewed first, not decided ones. When surfacing a review queue, lead with the riskiest (lowest trust), not the newest.
+5. **[A] ESCALATE on override.** If the developer waives a flag, note it honestly. V6 Gauss Learning adjusts the prior for similar future changes based on real overrides; silent dismissals poison the EMA.
+6. **[A] Restore before resume.** After compaction, read `plugins/session-memory/state/session-summary.md` and brief: "Last session: N changes, M low-trust flagged, K advisories." Then resume.
 
-## Information gain — what gets reviewed first
+## Trust bands (V2)
 
-Decision-gate ranks by `IG(trust) = -p log p - (1-p) log(1-p)`. Maximum at trust 0.5 — uncertain changes get reviewed first. Trust near 0.1 or 0.9 is already decided; low IG. When surfacing a review queue, respect this ordering: don't lead with a 0.95-trust doc change.
+| Score | Band | Action |
+|-------|------|--------|
+| ≥ 0.8 | high | No review needed |
+| 0.4–0.8 | moderate | Optional review; mention to developer |
+| 0.2–0.4 | low | Pause; explain change; answer adversarial questions |
+| < 0.2 | critical | Stop; surface to developer |
 
-## What you MUST do
+Priors: all files start at Beta(2, 2), mean 0.5. Docs/tests push trust up; config/schema push it down. Reverts halve the likelihood. Sensitive files (.env, secrets) start lower. Wildcard CORS, auth removals, and deleted assertions drop trust fast.
 
-1. **When you see `[Hornet]` in stderr**: Acknowledge it to the developer. Name what Hornet flagged, the trust score, and why.
-
-2. **When trust drops below 0.4**: Pause. Explain what you changed and why. Don't keep writing to that file without addressing the concern. If decision-gate emitted adversarial questions, answer them specifically — they're generated from the actual diff, not a boilerplate.
-
-3. **When trust drops below 0.2**: Stop writing to that file. Tell the developer: "Hornet flagged this as critical. Here's what I changed and what could go wrong." Do not continue until acknowledged.
-
-4. **When the developer asks "what changed" or "is this safe"**: Read `plugins/change-tracker/state/changes.jsonl` and `plugins/trust-scorer/state/trust.json`. Give a semantic summary grouped by change type — not a raw file list. Lead with the riskiest files first (lowest trust).
-
-5. **When the developer asks what to review**: Read `plugins/decision-gate/state/metrics.jsonl` and surface the IG-ranked queue. Don't just dump every file — the whole point is to reduce review load.
-
-6. **After compaction**: Read `plugins/session-memory/state/session-summary.md` and `plugins/session-memory/state/session-graph.json`. Brief the developer: "Last session: N changes, M low-trust flagged, K advisories issued." Then resume.
-
-7. **When the developer overrides a trust flag**: Note it. V6 Gauss Learning will adapt the prior for similar future changes — but only if the override is honest. Don't silently dismiss flags "to keep moving."
-
-## Commands the developer can use
-
-- `/hornet:changes` — files touched, grouped by type and cluster
-- `/hornet:trust` — trust scores sorted riskiest-first
-- `/hornet:review` — IG-ranked review queue with adversarial questions for low-trust changes
-- `/hornet:session` — full session dashboard (continuity graph + learnings)
-
-## State layout
+## State paths
 
 ```
-plugins/change-tracker/state/changes.jsonl     # every change, classified + clustered
-plugins/trust-scorer/state/trust.json          # per-file Beta(α,β) + trust
-plugins/trust-scorer/state/learnings.json      # cross-session EMA priors (V6)
-plugins/decision-gate/state/metrics.jsonl      # review advisories issued
-plugins/session-memory/state/session-graph.json   # continuity graph
-plugins/session-memory/state/session-summary.md   # human-readable recap
+plugins/change-tracker/state/changes.jsonl      (append-only)
+plugins/trust-scorer/state/trust.json           (mutable, per-file Beta)
+plugins/trust-scorer/state/learnings.json       (mutable, V6 EMA priors)
+plugins/decision-gate/state/metrics.jsonl       (append-only, advisories)
+plugins/session-memory/state/session-graph.json (mutable, continuity)
+plugins/session-memory/state/session-summary.md (mutable, human-readable)
 ```
+
+Never write these directly — owned by hooks and agents.
 
 ## Agent tiers
 
-| Agent | Model | Plugin | Role |
-|-------|-------|--------|------|
-| classifier | Haiku | change-tracker | Deep semantic classification when heuristics are ambiguous |
-| auditor | Haiku | trust-scorer | Trust distribution analysis + risk report |
-| adversary | Sonnet | decision-gate | Targeted adversarial questions for low-trust diffs |
-| restorer | Haiku | session-memory | Autonomous context restoration post-compaction |
+All 4 agents documented in `./plugins/*/agents/*.md` with explicit output contracts. Tiers per `flux/docs/brand-guide.md`:
 
-Respect the tiering. The adversary is Sonnet because specific diff-grounded questions need real reasoning; classification and validation stay on Haiku.
+- `classifier` (Haiku) · `auditor` (Haiku) · `restorer` (Haiku) — validators
+- `adversary` (Sonnet) — executor (diff-grounded reasoning needs real analysis)
 
-## What NOT to do
+## Anti-patterns
 
-- Don't suppress or dismiss Hornet warnings — the advisories exist because the diff looked wrong
-- Don't modify Hornet state files directly (`trust.json`, `changes.jsonl`, `session-graph.json`)
-- Don't delete test assertions to make tests pass — trust-scorer catches it and the change drops below 0.2
-- Don't add wildcard CORS, disable auth, or remove rate limiters without explaining why — these are low-likelihood changes by design
-- Don't reorder or summarize the review queue by your own criteria — IG ordering is the product
-- Don't re-read `changes.jsonl` on every turn — the file is append-only; read once per session unless explicitly asked for fresh state
+- **Queue reordering.** Presenting the review queue in your own ordering (most recent, smallest, etc). IG ordering is the product; overriding it defeats the point.
+- **Test-assertion deletion.** Removing `expect`/`assert` calls to make tests pass. V1 classifies this as `test_change` with punitive likelihood; trust collapses. [Real incident class — see `docs/science/README.md`.]
+- **Silent override.** Waiving a low-trust flag without surfacing it. V6 adapts priors from real decisions; unlogged overrides poison learning.
+- **Re-read `changes.jsonl` every turn.** It's append-only; read once per session or when explicitly asked for fresh state. Repeated reads waste context (and trigger Allay's A5 duplicate block if co-installed).
+- **State-file mutation.** Editing `trust.json`, `changes.jsonl`, or `session-graph.json` by hand to silence a flag. Breaks V2's posterior and V6's EMA.
