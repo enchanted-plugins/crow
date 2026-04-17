@@ -22,14 +22,15 @@ Real-time change comprehension. Bayesian trust scoring. Information-gain review.
 
 - [The Problem](#the-problem)
 - [How It Works](#how-it-works)
-- [The Science Behind Hornet](#the-science-behind-hornet)
-- [Install](#install)
-- [4 Plugins, 4 Agents, 6 Algorithms](#4-plugins-4-agents-6-algorithms)
-- [What You Get Per Session](#what-you-get-per-session)
-- [Commands](#commands)
 - [How Trust Scoring Works](#how-trust-scoring-works)
 - [How Information-Gain Ordering Works](#how-information-gain-ordering-works)
+- [4 Plugins, 4 Agents, 6 Algorithms](#4-plugins-4-agents-6-algorithms)
+- [What You Get Per Session](#what-you-get-per-session)
+- [Install](#install)
+- [The Science Behind Hornet](#the-science-behind-hornet)
+- [Commands](#commands)
 - [vs Everything Else](#vs-everything-else)
+- [Agent Conduct (9 Modules)](#agent-conduct-9-modules)
 - [Architecture](#architecture)
 - [Contributing](#contributing)
 - [License](#license)
@@ -281,21 +282,21 @@ Review the uncertain files first. Skip the ones where trust is already decided.
 | Cross-session learning | Gauss EMA | — | — | — | — |
 | Dependencies | bash + jq | Node | Node + MCP | Python | API |
 
-## Behavioral modules
+## Agent Conduct (9 Modules)
 
-Every skill inherits a set of reusable behavioral contracts from [shared/](shared/) — loaded once into [CLAUDE.md](CLAUDE.md), applied across all plugins.
+Every skill inherits a reusable behavioral contract from [shared/](shared/) — loaded once into [CLAUDE.md](CLAUDE.md), applied across all plugins. This is how Claude *acts* inside Hornet: deterministic, surgical, verifiable. Not a suggestion; a contract.
 
 | Module | What it governs |
 |--------|-----------------|
-| [discipline.md](shared/discipline.md) | Coding conduct: think-first, simplicity, surgical edits, goal-driven loops |
-| [context.md](shared/context.md) | Attention-budget hygiene, U-curve placement, checkpoint protocol |
-| [verification.md](shared/verification.md) | Independent checks, baseline snapshots, dry-run for destructive ops |
-| [delegation.md](shared/delegation.md) | Subagent contracts, tool whitelisting, parallel vs. serial rules |
-| [failure-modes.md](shared/failure-modes.md) | 14-code taxonomy for accumulated-learning logs |
-| [tool-use.md](shared/tool-use.md) | Tool-choice hygiene, error payload contract, parallel-dispatch rules |
-| [skill-authoring.md](shared/skill-authoring.md) | SKILL.md frontmatter discipline, discovery test |
-| [hooks.md](shared/hooks.md) | Advisory-only hooks, injection over denial, fail-open |
-| [precedent.md](shared/precedent.md) | Log self-observed failures to `state/precedent-log.md`; consult before risky steps |
+| [discipline.md](shared/conduct/discipline.md) | Coding conduct: think-first, simplicity, surgical edits, goal-driven loops |
+| [context.md](shared/conduct/context.md) | Attention-budget hygiene, U-curve placement, checkpoint protocol |
+| [verification.md](shared/conduct/verification.md) | Independent checks, baseline snapshots, dry-run for destructive ops |
+| [delegation.md](shared/conduct/delegation.md) | Subagent contracts, tool whitelisting, parallel vs. serial rules |
+| [failure-modes.md](shared/conduct/failure-modes.md) | 14-code taxonomy for accumulated-learning logs |
+| [tool-use.md](shared/conduct/tool-use.md) | Tool-choice hygiene, error payload contract, parallel-dispatch rules |
+| [skill-authoring.md](shared/conduct/skill-authoring.md) | SKILL.md frontmatter discipline, discovery test |
+| [hooks.md](shared/conduct/hooks.md) | Advisory-only hooks, injection over denial, fail-open |
+| [precedent.md](shared/conduct/precedent.md) | Log self-observed failures to `state/precedent-log.md`; consult before risky steps |
 
 ## Architecture
 
