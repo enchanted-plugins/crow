@@ -28,6 +28,7 @@ The question this plugin answers: *What just happened?*
 
 - [The Problem](#the-problem)
 - [How It Works](#how-it-works)
+- [What Makes Hornet Different](#what-makes-hornet-different)
 - [The Full Lifecycle](#the-full-lifecycle)
 - [Install](#install)
 - [4 Plugins, 4 Agents, 6 Algorithms](#4-plugins-4-agents-6-algorithms)
@@ -70,6 +71,24 @@ Source: [docs/assets/pipeline.mmd](docs/assets/pipeline.mmd) · Regeneration com
 </sub>
 
 Each plugin owns one concern. No overlap. No dependencies between plugins.
+
+## What Makes Hornet Different
+
+### It scores trust instead of flagging changes
+
+Every Write/Edit updates a Beta-Bernoulli posterior per file. Docs push the mean up, sensitive config pushes it down, reverts halve the likelihood. After 6 changes, a file's trust posterior has narrowed enough to say "review this one" or "this one's fine" — no more rubber-stamping 12 diffs at equal weight.
+
+### It orders reviews by Information Gain, not diff position
+
+`IG(X) = H(trust posterior)`. Changes at trust 0.5 get reviewed first (maximum uncertainty, maximum value). Changes at trust 0.1 or 0.9 drop to the bottom — the decision is already made. You review 2 files out of 12, and they're the right 2.
+
+### Adversarial questions, not generic warnings
+
+For any file under trust 0.4, the decision-gate agent generates specific adversarial questions tied to the diff content. "This changes the database query from parameterized to string interpolation — SQL injection risk." Not "consider security implications."
+
+### It remembers your review patterns across sessions
+
+H6 Gauss Learning (cross-session EMA) adapts priors per file type. After N sessions, Hornet knows: config changes always get flagged by this developer, test changes are usually safe, schema changes require careful review. The classifier's defaults give way to what you actually do.
 
 ## The Full Lifecycle
 
