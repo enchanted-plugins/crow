@@ -30,16 +30,20 @@ const FG = "#e6edf3";
 const OUT = path.join(__dirname, "math");
 fs.mkdirSync(OUT, { recursive: true });
 
+// Labels follow root README ordering (H1=Semantic Diff, H2=Bayesian Trust,
+// H3=Info-Gain, H4=Continuity, H5=Adversarial, H6=Gauss Learning).
+// H4 + H5 are structural (graph assembly, question dispatch) and have
+// no closed-form formula.
 const EQUATIONS = [
-  ["v1-classify",
+  ["h1-classify",
    String.raw`\mathrm{classify}(f) = \begin{cases} \mathrm{config} & f \in \{\texttt{.json},\,\texttt{.yaml},\,\texttt{.env}\} \\ \mathrm{test} & f \in \{\texttt{test},\,\texttt{spec}\} \\ \mathrm{schema} & f \in \{\texttt{.sql},\,\texttt{migration}\} \\ \mathrm{source} & \text{otherwise} \end{cases}`],
-  ["v2-bayes",
+  ["h2-bayes",
    String.raw`P(\theta \mid D) = \dfrac{P(D \mid \theta)\,P(\theta)}{P(D)} \qquad P(\theta) = \mathrm{Beta}(\alpha,\,\beta)`],
-  ["v2-update",
+  ["h2-update",
    String.raw`\alpha_{\mathrm{new}} = \alpha + \ell \qquad \beta_{\mathrm{new}} = \beta + (1 - \ell) \qquad \mathrm{trust} = \dfrac{\alpha}{\alpha + \beta}`],
-  ["v3-infogain",
+  ["h3-infogain",
    String.raw`IG(X) = H(X) = -p \log_2 p \;-\; (1 - p) \log_2(1 - p)`],
-  ["v6-gauss",
+  ["h6-gauss",
    String.raw`r_{\mathrm{new}} = \alpha \cdot s_{\mathrm{current}} + (1 - \alpha) \cdot r_{\mathrm{prior}} \qquad \alpha = 0.3`],
 ];
 
