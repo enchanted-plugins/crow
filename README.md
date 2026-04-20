@@ -336,6 +336,12 @@ Every skill inherits a reusable behavioral contract from [shared/](shared/) — 
 | [hooks.md](shared/conduct/hooks.md) | Advisory-only hooks, injection over denial, fail-open |
 | [precedent.md](shared/conduct/precedent.md) | Log self-observed failures to `state/precedent-log.md`; consult before risky steps |
 
+## Architecture
+
+Interactive architecture explorer with plugin diagrams, agent cards, and data flow:
+
+**[docs/architecture/](docs/architecture/)** — auto-generated from the codebase. Run `python docs/architecture/generate.py` to regenerate.
+
 ## Acknowledgments
 
 Hornet builds on foundations laid by others:
@@ -351,12 +357,6 @@ Hornet builds on foundations laid by others:
 ## Versioning & release cadence
 
 Hornet follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Breaking changes land on major bumps only; the [CHANGELOG](CHANGELOG.md) flags them explicitly. Release cadence is opportunistic — tags land when accumulated fixes or features justify a cut, not on a fixed schedule. Migration notes between majors live in [docs/upgrading.md](docs/upgrading.md).
-
-## Architecture
-
-Interactive architecture explorer with plugin diagrams, agent cards, and data flow:
-
-**[docs/architecture/](docs/architecture/)** — auto-generated from the codebase. Run `python docs/architecture/generate.py` to regenerate.
 
 ## Contributing
 
