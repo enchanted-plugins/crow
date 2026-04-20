@@ -28,13 +28,14 @@ The question this plugin answers: *What just happened?*
 
 - [The Problem](#the-problem)
 - [How It Works](#how-it-works)
-- [How Trust Scoring Works](#how-trust-scoring-works)
-- [How Information-Gain Ordering Works](#how-information-gain-ordering-works)
+- [The Full Lifecycle](#the-full-lifecycle)
+- [Install](#install)
 - [4 Plugins, 4 Agents, 6 Algorithms](#4-plugins-4-agents-6-algorithms)
 - [What You Get Per Session](#what-you-get-per-session)
-- [Install](#install)
 - [The Science Behind Hornet](#the-science-behind-hornet)
 - [Commands](#commands)
+- [How Trust Scoring Works](#how-trust-scoring-works)
+- [How Information-Gain Ordering Works](#how-information-gain-ordering-works)
 - [vs Everything Else](#vs-everything-else)
 - [Agent Conduct (9 Modules)](#agent-conduct-9-modules)
 - [Architecture](#architecture)
@@ -55,8 +56,8 @@ The review-and-comprehension loop eats 40-60% of every Claude Code session:
 Four plugins, one concern each, bound to specific hook points. **decision-gate** on `PreToolUse` orders pending reviews by information gain (H3) and red-teams low-trust changes (H5). **change-tracker** on `PostToolUse` classifies and clusters every diff (H1). **trust-scorer** on `PostToolUse` updates a Beta-Bernoulli posterior per file (H2). **session-memory** on `PreCompact` builds a continuity graph and persists cross-session learnings (H4, H6). The diagram below shows the bindings and state outputs.
 
 <p align="center">
-  <a href="docs/assets/hooks.mmd" title="View hook-binding diagram source (Mermaid)">
-    <img src="docs/assets/hooks.svg"
+  <a href="docs/assets/pipeline.mmd" title="View hook-binding diagram source (Mermaid)">
+    <img src="docs/assets/pipeline.svg"
          alt="Hornet hook bindings: Claude Code file changes fan out into decision-gate (PreToolUse · H3/H5), change-tracker (PostToolUse · H1), trust-scorer (PostToolUse · H2), session-memory (PreCompact · H4/H6); each plugin emits its own state artifact (advisory, changes.jsonl, trust.json, session-graph.json)"
          width="100%" style="max-width:1100px;">
   </a>
@@ -64,13 +65,13 @@ Four plugins, one concern each, bound to specific hook points. **decision-gate**
 
 <sub align="center">
 
-Source: [docs/assets/hooks.mmd](docs/assets/hooks.mmd) · Regeneration command in [docs/assets/README.md](docs/assets/README.md).
+Source: [docs/assets/pipeline.mmd](docs/assets/pipeline.mmd) · Regeneration command in [docs/assets/README.md](docs/assets/README.md).
 
 </sub>
 
 Each plugin owns one concern. No overlap. No dependencies between plugins.
 
-### Session Lifecycle
+## The Full Lifecycle
 
 Every file change passes the `PreToolUse` gate (decision-gate), the tool executes, then `PostToolUse` updates change-tracker and trust-scorer. When context fills, `PreCompact` triggers session-memory to write `session-graph.json` before the wipe. On resume, the restorer agent reads it back autonomously.
 
@@ -87,6 +88,64 @@ Every file change passes the `PreToolUse` gate (decision-gate), the tool execute
 Source: [docs/assets/lifecycle.mmd](docs/assets/lifecycle.mmd) · Regeneration command in [docs/assets/README.md](docs/assets/README.md).
 
 </sub>
+
+## Install
+
+Hornet ships as 4 plugins that feed each other (change-tracker → trust-scorer → decision-gate → session-memory). One meta-plugin — `full` — lists all four as dependencies, so a single install pulls in the whole chain.
+
+**In Claude Code** (recommended):
+
+```
+/plugin marketplace add enchanted-plugins/hornet
+/plugin install full@hornet
+```
+
+Claude Code resolves the dependency list and installs all 4 plugins. Verify with `/plugin list`.
+
+**Want to cherry-pick?** Individual plugins are still installable by name — e.g. `/plugin install hornet-trust-scorer@hornet` if you only need scoring. The pipeline is designed to work end-to-end, though, so `full@hornet` is the path we recommend.
+
+**Via shell** (also installs `shared/*.sh` and `shared/scripts/*.py` locally so hooks work offline):
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/enchanted-plugins/hornet/main/install.sh)
+```
+
+## 4 Plugins, 4 Agents, 6 Algorithms
+
+| Plugin | Hook | Command | What |
+|--------|------|---------|------|
+| change-tracker | PostToolUse | `/hornet:changes` | Semantic diff compression + classification |
+| trust-scorer | PostToolUse | `/hornet:trust` | Bayesian trust scoring + alerts |
+| decision-gate | PreToolUse | `/hornet:review` | IG-ordered review + adversarial questions |
+| session-memory | PreCompact | `/hornet:session` | Continuity graph + Gauss learning |
+
+| Agent | Model | Plugin | What |
+|-------|-------|--------|------|
+| classifier | Haiku | change-tracker | Deep semantic change classification |
+| auditor | Haiku | trust-scorer | Trust distribution analysis + risk report |
+| adversary | Sonnet | decision-gate | Targeted adversarial review questions |
+| restorer | Haiku | session-memory | Autonomous context restoration |
+
+## What You Get Per Session
+
+```
+change-tracker/state/
+├── changes.jsonl        # Every file change with type, hash, cluster
+└── metrics.jsonl        # change_tracked events
+
+trust-scorer/state/
+├── trust.json           # Per-file Beta parameters and trust scores
+├── learnings.json       # Cross-session Gauss learning data
+└── metrics.jsonl        # trust_scored events
+
+decision-gate/state/
+└── metrics.jsonl        # review_advisory events
+
+session-memory/state/
+├── session-graph.json   # Continuity graph (nodes, edges, trust overview)
+├── session-summary.md   # Human-readable session recap
+└── metrics.jsonl        # session_saved events
+```
 
 ## The Science Behind Hornet
 
@@ -155,64 +214,6 @@ Exponential moving average over per-type trust rates across sessions.
 After N sessions, Hornet knows: config changes always get flagged, test changes are usually safe,
 this developer always reviews schema changes carefully. Adapts priors accordingly.
 
-## Install
-
-Hornet ships as 4 plugins that feed each other (change-tracker → trust-scorer → decision-gate → session-memory). One meta-plugin — `full` — lists all four as dependencies, so a single install pulls in the whole chain.
-
-**In Claude Code** (recommended):
-
-```
-/plugin marketplace add enchanted-plugins/hornet
-/plugin install full@hornet
-```
-
-Claude Code resolves the dependency list and installs all 4 plugins. Verify with `/plugin list`.
-
-**Want to cherry-pick?** Individual plugins are still installable by name — e.g. `/plugin install hornet-trust-scorer@hornet` if you only need scoring. The pipeline is designed to work end-to-end, though, so `full@hornet` is the path we recommend.
-
-**Via shell** (also installs `shared/*.sh` and `shared/scripts/*.py` locally so hooks work offline):
-
-```bash
-bash <(curl -s https://raw.githubusercontent.com/enchanted-plugins/hornet/main/install.sh)
-```
-
-## 4 Plugins, 4 Agents, 6 Algorithms
-
-| Plugin | Hook | Command | What |
-|--------|------|---------|------|
-| change-tracker | PostToolUse | `/hornet:changes` | Semantic diff compression + classification |
-| trust-scorer | PostToolUse | `/hornet:trust` | Bayesian trust scoring + alerts |
-| decision-gate | PreToolUse | `/hornet:review` | IG-ordered review + adversarial questions |
-| session-memory | PreCompact | `/hornet:session` | Continuity graph + Gauss learning |
-
-| Agent | Model | Plugin | What |
-|-------|-------|--------|------|
-| classifier | Haiku | change-tracker | Deep semantic change classification |
-| auditor | Haiku | trust-scorer | Trust distribution analysis + risk report |
-| adversary | Sonnet | decision-gate | Targeted adversarial review questions |
-| restorer | Haiku | session-memory | Autonomous context restoration |
-
-## What You Get Per Session
-
-```
-change-tracker/state/
-├── changes.jsonl        # Every file change with type, hash, cluster
-└── metrics.jsonl        # change_tracked events
-
-trust-scorer/state/
-├── trust.json           # Per-file Beta parameters and trust scores
-├── learnings.json       # Cross-session Gauss learning data
-└── metrics.jsonl        # trust_scored events
-
-decision-gate/state/
-└── metrics.jsonl        # review_advisory events
-
-session-memory/state/
-├── session-graph.json   # Continuity graph (nodes, edges, trust overview)
-├── session-summary.md   # Human-readable session recap
-└── metrics.jsonl        # session_saved events
-```
-
 ## Commands
 
 | Command | Plugin | What |
@@ -276,12 +277,6 @@ Interactive architecture explorer with plugin diagrams, agent cards, and data fl
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)
-
-## Origin
-
-Hornet takes its name from **Hollow Knight** — a game about exploration where every area hides secrets you must carefully observe to survive. Hornet herself is a careful observer: she watches before she acts, she names what she sees, she doesn't trust anything she hasn't verified. This plugin inherits the stance. Every edit Claude makes is observed, scored, and logged before it's allowed to influence a commit.
-
-The plugin answers the third of the Five Questions every AI-assisted session surfaces: *"What just happened?"* See [docs/ecosystem.md](docs/ecosystem.md) for the full map.
 
 ## License
 
