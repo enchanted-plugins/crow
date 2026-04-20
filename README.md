@@ -18,6 +18,12 @@ Real-time change comprehension. Bayesian trust scoring. Information-gain review.
 > the auth migration was safe (trust: 0.82), the config change was not (trust: 0.31),
 > and the test deletions were adversarial (trust: 0.18). I reviewed 2 files instead of 12.
 
+## Origin
+
+Hornet takes her name from **Hornet of Hollow Knight** — an explorer who survives hostile terrain by observing carefully before every move. Every AI-assisted edit is hostile terrain until its diff has been read; Hornet reads it for you and scores trust before it reaches main.
+
+The question this plugin answers: *What just happened?*
+
 ## Contents
 
 - [The Problem](#the-problem)
@@ -46,12 +52,12 @@ The review-and-comprehension loop eats 40-60% of every Claude Code session:
 
 ## How It Works
 
-Four plugins, one concern each, bound to specific hook points. **decision-gate** on `PreToolUse` orders pending reviews by information gain (V3) and red-teams low-trust changes (V5). **change-tracker** on `PostToolUse` classifies and clusters every diff (V1). **trust-scorer** on `PostToolUse` updates a Beta-Bernoulli posterior per file (V2). **session-memory** on `PreCompact` builds a continuity graph and persists cross-session learnings (V4, V6). The diagram below shows the bindings and state outputs.
+Four plugins, one concern each, bound to specific hook points. **decision-gate** on `PreToolUse` orders pending reviews by information gain (H3) and red-teams low-trust changes (H5). **change-tracker** on `PostToolUse` classifies and clusters every diff (H1). **trust-scorer** on `PostToolUse` updates a Beta-Bernoulli posterior per file (H2). **session-memory** on `PreCompact` builds a continuity graph and persists cross-session learnings (H4, H6). The diagram below shows the bindings and state outputs.
 
 <p align="center">
   <a href="docs/assets/hooks.mmd" title="View hook-binding diagram source (Mermaid)">
     <img src="docs/assets/hooks.svg"
-         alt="Hornet hook bindings: Claude Code file changes fan out into decision-gate (PreToolUse · V3/V5), change-tracker (PostToolUse · V1), trust-scorer (PostToolUse · V2), session-memory (PreCompact · V4/V6); each plugin emits its own state artifact (advisory, changes.jsonl, trust.json, session-graph.json)"
+         alt="Hornet hook bindings: Claude Code file changes fan out into decision-gate (PreToolUse · H3/H5), change-tracker (PostToolUse · H1), trust-scorer (PostToolUse · H2), session-memory (PreCompact · H4/H6); each plugin emits its own state artifact (advisory, changes.jsonl, trust.json, session-graph.json)"
          width="100%" style="max-width:1100px;">
   </a>
 </p>
@@ -86,22 +92,22 @@ Source: [docs/assets/lifecycle.mmd](docs/assets/lifecycle.mmd) · Regeneration c
 
 Six named algorithms power every decision:
 
-### V1. Semantic Diff Compression (Change Tracker)
+### H1. Semantic Diff Compression (Change Tracker)
 
 Raw diffs are noise. Hornet classifies each change by type and clusters related changes across files.
 
 Change types: `source_code`, `config_change`, `test_change`, `documentation`, `schema_change`, `dependency_change`.
 Impact radius: local (1 file), module (2-5 files), systemic (6+ files).
 
-<p align="center"><img src="docs/assets/math/v1-classify.svg" alt="classify(f) = config if .json/.yaml/.env; test if test/spec; schema if .sql/migration; source otherwise"></p>
+<p align="center"><img src="docs/assets/math/h1-classify.svg" alt="classify(f) = config if .json/.yaml/.env; test if test/spec; schema if .sql/migration; source otherwise"></p>
 
-### V2. Bayesian Trust Scoring (Trust Scorer)
+### H2. Bayesian Trust Scoring (Trust Scorer)
 
 Each file change gets a trust score using Beta-Bernoulli conjugate priors.
 
-<p align="center"><img src="docs/assets/math/v2-bayes.svg" alt="P(theta | D) = P(D | theta) · P(theta) / P(D); P(theta) = Beta(alpha, beta)"></p>
+<p align="center"><img src="docs/assets/math/h2-bayes.svg" alt="P(theta | D) = P(D | theta) · P(theta) / P(D); P(theta) = Beta(alpha, beta)"></p>
 
-<p align="center"><img src="docs/assets/math/v2-update.svg" alt="alpha_new = alpha + l; beta_new = beta + (1 - l); trust = alpha / (alpha + beta)"></p>
+<p align="center"><img src="docs/assets/math/h2-update.svg" alt="alpha_new = alpha + l; beta_new = beta + (1 - l); trust = alpha / (alpha + beta)"></p>
 
 Prior: Beta(2, 2) — mildly uncertain. Update via change-type likelihood ℓ. Trust reported as the posterior mean.
 
@@ -115,15 +121,15 @@ Prior: Beta(2, 2) — mildly uncertain. Update via change-type likelihood ℓ. T
 | Dependencies | 0.50 |
 | Config (sensitive) | 0.30 |
 
-### V3. Information-Gain Decision Support (Decision Gate)
+### H3. Information-Gain Decision Support (Decision Gate)
 
 Help the developer review efficiently by showing the most uncertain changes first.
 
-<p align="center"><img src="docs/assets/math/v3-infogain.svg" alt="IG(X) = H(X) = -p log2(p) - (1-p) log2(1-p)"></p>
+<p align="center"><img src="docs/assets/math/h3-infogain.svg" alt="IG(X) = H(X) = -p log2(p) - (1-p) log2(1-p)"></p>
 
 Maximum at p = 0.5 (trust is most uncertain). Changes at trust 0.5 get reviewed first. Changes at trust 0.1 or 0.9 are already decided — low review value.
 
-### V4. Session Continuity Graph (Session Memory)
+### H4. Session Continuity Graph (Session Memory)
 
 Before compaction, build a semantic graph:
 - Nodes: files (with type, trust, change count), decisions (review advisories)
@@ -131,7 +137,7 @@ Before compaction, build a semantic graph:
 
 On resumption: "Last session: 15 changes, 2 low-trust files flagged, 3 advisories issued."
 
-### V5. Adversarial Self-Review (Decision Gate extension)
+### H5. Adversarial Self-Review (Decision Gate extension)
 
 For low-trust changes (trust < 0.4), generate specific adversarial questions:
 - "This changes the database query from parameterized to string interpolation. SQL injection risk."
@@ -140,11 +146,11 @@ For low-trust changes (trust < 0.4), generate specific adversarial questions:
 
 Not generic warnings. Specific to the diff content.
 
-### V6. Gauss Learning (Cross-Session)
+### H6. Gauss Learning (Cross-Session)
 
 Exponential moving average over per-type trust rates across sessions.
 
-<p align="center"><img src="docs/assets/math/v6-gauss.svg" alt="r_new = alpha · s_current + (1 - alpha) · r_prior; alpha = 0.3"></p>
+<p align="center"><img src="docs/assets/math/h6-gauss.svg" alt="r_new = alpha · s_current + (1 - alpha) · r_prior; alpha = 0.3"></p>
 
 After N sessions, Hornet knows: config changes always get flagged, test changes are usually safe,
 this developer always reviews schema changes carefully. Adapts priors accordingly.
@@ -270,6 +276,12 @@ Interactive architecture explorer with plugin diagrams, agent cards, and data fl
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Origin
+
+Hornet takes its name from **Hollow Knight** — a game about exploration where every area hides secrets you must carefully observe to survive. Hornet herself is a careful observer: she watches before she acts, she names what she sees, she doesn't trust anything she hasn't verified. This plugin inherits the stance. Every edit Claude makes is observed, scored, and logged before it's allowed to influence a commit.
+
+The plugin answers the third of the Five Questions every AI-assisted session surfaces: *"What just happened?"* See [docs/ecosystem.md](docs/ecosystem.md) for the full map.
 
 ## License
 
