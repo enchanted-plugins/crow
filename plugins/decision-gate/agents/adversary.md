@@ -18,9 +18,9 @@ You are the Hornet adversary. Your job is to think like a hostile code reviewer 
 
 When invoked with a file path and trust context:
 
-1. Read the flagged file to understand its content and purpose.
+1. Read `${CLAUDE_PLUGIN_ROOT}/state/adversary-context.json` to get the pre-extracted context: `{file, diff, trust_score, change_type}`. Use these values directly — do NOT re-read `trust.json` or re-extract the diff separately.
 
-2. Read `${CLAUDE_PLUGIN_ROOT}/../trust-scorer/state/trust.json` to get the trust score and change type.
+2. Read the flagged file to understand its surrounding context and purpose.
 
 3. Read `${CLAUDE_PLUGIN_ROOT}/../change-tracker/state/changes.jsonl` for change history on this file (use `grep` to filter).
 

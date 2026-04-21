@@ -33,7 +33,7 @@ The first 5 plugins answer the 5 fundamental questions of AI-assisted developmen
 |---|--------|----------|------------|---------|--------|
 | 1 | **Flux** | What did I say? (prompt quality) | Gauss Convergence, Boolean SAT, Game Theory, Cross-Domain Adaptation | v3.0.0 | Shipped — 7 plugins |
 | 2 | **Allay** | What did I spend? (token health) | Markov Drift, Shannon Compression, Linear Runway, Atomic Serialization | v2.0.0 | Shipped — 4 plugins |
-| 3 | **Hornet** | What just happened? (change comprehension) | Bayesian Trust, Semantic Diff, Information-Gain, Session Continuity | v1.0.0 | Shipped — 5 plugins |
+| 3 | **Hornet** | What just happened? (change comprehension) | Bayesian Trust, Semantic Diff, Information-Gain, Session Continuity | v1.0.0 | Shipped — 4 sub-plugins + 1 full meta-plugin |
 | 4 | **Reaper** | Is it safe? (security) | Aho-Corasick, Shannon Entropy, Config Poisoning, Phantom Dependency, EMA Posture Decay | v1.0.0 | Shipped — 6 plugins |
 | 5 | **Nook** | What did it cost? (spend tracking) | Exponential Smoothing, Budget Forecasting | — | Not started |
 
@@ -216,7 +216,7 @@ Every named algorithm across the ecosystem:
 | V3 | Information-Gain Decision | Hornet | Review prioritization by uncertainty reduction |
 | V4 | Session Continuity Graph | Hornet | Decision-causal relationship persistence |
 | V5 | Adversarial Self-Review | Hornet | Specific concern generation for risky changes |
-| V6 | Gauss Learning (Hornet) | Hornet | Developer preference accumulation |
+| V6 | Exponential Strategy Averaging (Hornet) | Hornet | Developer preference accumulation |
 | S1 | Aho-Corasick Pattern | Reaper | Multi-pattern secret scanning |
 | S2 | Shannon Entropy Analysis | Reaper | High-entropy string detection |
 | L1 | Exponential Smoothing | Nook | Cost forecasting |

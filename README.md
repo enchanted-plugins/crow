@@ -105,11 +105,11 @@ For any file under trust 0.4, the decision-gate agent generates specific adversa
 
 ### It remembers your review patterns across sessions
 
-H6 Gauss Learning (cross-session EMA) adapts priors per file type. After N sessions, Hornet knows: config changes always get flagged by this developer, test changes are usually safe, schema changes require careful review. The classifier's defaults give way to what you actually do.
+H6 Exponential Strategy Averaging (cross-session EMA) adapts priors per file type. After N sessions, Hornet knows: config changes always get flagged by this developer, test changes are usually safe, schema changes require careful review. The classifier's defaults give way to what you actually do.
 
 ## The Full Lifecycle
 
-Every file change passes the `PreToolUse` gate (decision-gate), the tool executes, then `PostToolUse` updates change-tracker and trust-scorer. When context fills, `PreCompact` triggers session-memory to write `session-graph.json` before the wipe. On resume, the restorer agent reads it back autonomously.
+The tool executes, then `PostToolUse` runs decision-gate (H3 IG-ranking + H5 adversarial questions on fresh trust scores), change-tracker, and trust-scorer. When context fills, `PreCompact` triggers session-memory to write `session-graph.json` before the wipe. On resume, the restorer agent reads it back autonomously.
 
 <p align="center">
   <a href="docs/assets/lifecycle.mmd" title="View session-lifecycle diagram source (Mermaid)">
@@ -164,8 +164,8 @@ Expected: `/hornet:trust` prints per-file rows sorted riskiest-first — trust s
 |--------|------|---------|------|
 | change-tracker | PostToolUse | `/hornet:changes` | Semantic diff compression + classification |
 | trust-scorer | PostToolUse | `/hornet:trust` | Bayesian trust scoring + alerts |
-| decision-gate | PreToolUse | `/hornet:review` | IG-ordered review + adversarial questions |
-| session-memory | PreCompact | `/hornet:session` | Continuity graph + Gauss learning |
+| decision-gate | PostToolUse | `/hornet:review` | IG-ordered review + adversarial questions |
+| session-memory | PreCompact | `/hornet:session` | Continuity graph + Exponential Strategy Averaging |
 
 | Agent | Model | Plugin | What |
 |-------|-------|--------|------|
@@ -176,7 +176,7 @@ Expected: `/hornet:trust` prints per-file rows sorted riskiest-first — trust s
 
 ## What You Get Per Session
 
-Three hook events fan out into four color-coded journals — one per sub-plugin — and converge on the enchanted-mcp bus and the `/hornet:*` query surface. Color maps engines to journals: blue = change-tracker (V1 semantic-diff) · purple = trust-scorer (V2 Bayesian + V6 Gauss learning) · red = decision-gate (V3 info-gain) · yellow = session-memory (V4 continuity graph).
+Three hook events fan out into four color-coded journals — one per sub-plugin — and converge on the enchanted-mcp bus and the `/hornet:*` query surface. Color maps engines to journals: blue = change-tracker (V1 semantic-diff) · purple = trust-scorer (V2 Bayesian + V6 Exponential Strategy Averaging) · red = decision-gate (V3 info-gain) · yellow = session-memory (V4 continuity graph).
 
 <p align="center">
   <a href="docs/assets/state-flow.mmd" title="View state-flow diagram source (Mermaid)">
@@ -199,7 +199,7 @@ change-tracker/state/
 
 trust-scorer/state/
 ├── trust.json           # Per-file Beta parameters and trust scores
-├── learnings.json       # Cross-session Gauss learning data
+├── learnings.json       # Cross-session Exponential Strategy Averaging data
 └── metrics.jsonl        # trust_scored events
 
 decision-gate/state/
@@ -273,7 +273,7 @@ For low-trust changes (trust < 0.4), generate specific adversarial questions:
 
 Not generic warnings. Specific to the diff content.
 
-### H6. Gauss Learning (Cross-Session)
+### H6. Exponential Strategy Averaging (Cross-Session)
 
 Exponential moving average over per-type trust rates across sessions.
 

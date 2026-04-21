@@ -1,13 +1,13 @@
 {
-  "description": "Hornet decision-gate: advisory review before file writes based on trust scores",
+  "description": "Hornet decision-gate: advisory review after file writes based on trust scores",
   "hooks": {
-    "PreToolUse": [
+    "PostToolUse": [
       {
         "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-tool-use/gate-change.sh\"",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/post-tool-use/gate-change.sh\"",
             "timeout": 10
           }
         ]

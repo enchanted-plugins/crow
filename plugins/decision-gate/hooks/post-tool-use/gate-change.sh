@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# decision-gate: PreToolUse hook
+# decision-gate: PostToolUse hook
 # Implements V3 (Information-Gain Decision Support) and V5 (Adversarial Self-Review).
 # Advisory gating — exit 0 + stderr, NOT exit 2 blocking.
-# Fires on Write/Edit/MultiEdit before the write occurs.
+# Fires on Write/Edit/MultiEdit AFTER the write occurs so H2 trust scores are fresh.
 # MUST exit 0 always.
 
 trap 'exit 0' ERR INT TERM
@@ -147,6 +147,18 @@ if [[ "$IS_LOW" == "1" ]]; then
     *)
       QUESTIONS="What is the intent of this change? Does it align with the current task?" ;;
   esac
+
+  # ── Write adversary context fixture (Gap 2: avoid re-extraction in adversary agent) ──
+  STATE_DIR="${PLUGIN_ROOT}/state"
+  mkdir -p "$STATE_DIR"
+  DIFF_CONTENT=$(printf "%s" "$HOOK_INPUT" | jq -r '.tool_input.new_string // .tool_input.content // ""' 2>/dev/null || echo "")
+  ADVERSARY_CTX=$(jq -cn \
+    --arg file "$FILE_PATH" \
+    --arg diff "$DIFF_CONTENT" \
+    --argjson trust_score "$TRUST_SCORE" \
+    --arg change_type "$CHANGE_TYPE" \
+    '{file: $file, diff: $diff, trust_score: $trust_score, change_type: $change_type}')
+  printf "%s\n" "$ADVERSARY_CTX" > "${STATE_DIR}/adversary-context.json" 2>/dev/null || true
 fi
 
 # ── Construct stderr advisory ──

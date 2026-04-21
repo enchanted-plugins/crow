@@ -64,7 +64,7 @@ Bayesian trust scoring, semantic-diff clustering, and information-gain decision 
 /plugin marketplace add enchanted-plugins/hornet
 ```
 
-[Repository](https://github.com/enchanted-plugins/hornet) · v1.0.0 · 5 plugins
+[Repository](https://github.com/enchanted-plugins/hornet) · v1.0.0 · 4 sub-plugins + 1 full meta-plugin
 
 ### Reaper — Security Guardrails
 

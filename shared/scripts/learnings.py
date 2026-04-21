@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Hornet V6: Gauss Learning — cross-session EMA accumulation.
+"""Hornet V6: Exponential Strategy Averaging — cross-session EMA accumulation.
 
 Accumulates developer preferences across sessions using exponential
 moving averages of per-type trust rates and review frequencies.
 Not time-critical — called from save-session.sh at compaction time.
 Stdlib only — no external dependencies.
 
-Algorithm: Bayesian Strategy Accumulation (Gauss)
+Algorithm: Exponential Strategy Averaging
   r_new = alpha * s_current + (1 - alpha) * r_prior
   alpha = 0.3 (learning rate)
 

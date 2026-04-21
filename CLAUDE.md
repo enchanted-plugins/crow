@@ -22,14 +22,14 @@ When a module conflicts with a plugin-local instruction, the plugin wins — but
 
 | Plugin | Hook | Purpose |
 |--------|------|---------|
-| decision-gate | PreToolUse (Write\|Edit\|MultiEdit) | Advisory gate; adversarial questions for trust < 0.4 (V3, V5) |
+| decision-gate | PostToolUse (Write\|Edit\|MultiEdit) | Advisory gate; adversarial questions for trust < 0.4 (V3, V5) |
 | change-tracker | PostToolUse (Write\|Edit\|MultiEdit) | Semantic diff compression + classification (V1) |
 | trust-scorer | PostToolUse (Write\|Edit\|MultiEdit) | Beta-Bernoulli posterior update (V2) |
-| session-memory | PreCompact | Continuity graph + EMA learnings (V4, V6) |
+| session-memory | PreCompact | Continuity graph + Exponential Strategy Averaging (V4, V6) |
 
 ## Algorithms
 
-V1 Semantic Diff Compression · V2 Bayesian Trust Scoring · V3 Information-Gain Ordering · V4 Session Continuity Graph · V5 Adversarial Self-Review · V6 Gauss Learning. Derivations in `README.md` § *The Science Behind Hornet*.
+V1 Semantic Diff Compression · V2 Bayesian Trust Scoring · V3 Information-Gain Ordering · V4 Session Continuity Graph · V5 Adversarial Self-Review · V6 Exponential Strategy Averaging. Derivations in `README.md` § *The Science Behind Hornet*.
 
 ## Behavioral contracts
 
@@ -39,7 +39,7 @@ Markers: **[H]** hook-enforced · **[A]** advisory.
 2. **[A] YOU MUST pause at trust < 0.4.** Explain what you changed and why. Do not continue writing the same file without addressing the flag. If decision-gate (V5) emitted adversarial questions, answer them specifically — they're generated from the diff, not boilerplate.
 3. **[A] YOU MUST stop at trust < 0.2.** Surface to the developer: "Hornet flagged this as critical. Here's what I changed and what could go wrong." Do not resume until acknowledged.
 4. **[A] Respect IG ordering.** `IG(trust) = -p log p - (1-p) log(1-p)` peaks at trust = 0.5 — uncertain changes get reviewed first, not decided ones. When surfacing a review queue, lead with the riskiest (lowest trust), not the newest.
-5. **[A] ESCALATE on override.** If the developer waives a flag, note it honestly. V6 Gauss Learning adjusts the prior for similar future changes based on real overrides; silent dismissals poison the EMA.
+5. **[A] ESCALATE on override.** If the developer waives a flag, note it honestly. V6 Exponential Strategy Averaging adjusts the prior for similar future changes based on real overrides; silent dismissals poison the EMA.
 6. **[A] Restore before resume.** After compaction, read `plugins/session-memory/state/session-summary.md` and brief: "Last session: N changes, M low-trust flagged, K advisories." Then resume.
 
 ## Trust bands (V2)

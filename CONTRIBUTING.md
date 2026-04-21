@@ -46,8 +46,8 @@ Each plugin owns a specific concern across hook lifecycle phases:
 ```
 PostToolUse  →  change-tracker   (V1: semantic diff compression)
 PostToolUse  →  trust-scorer     (V2: Bayesian trust scoring)
-PreToolUse   →  decision-gate    (V3: info-gain ordering, V5: adversarial review)
-PreCompact   →  session-memory   (V4: continuity graph, V6: Gauss learning)
+PostToolUse  →  decision-gate    (V3: info-gain ordering, V5: adversarial review)
+PreCompact   →  session-memory   (V4: continuity graph, V6: Exponential Strategy Averaging)
 ```
 
 Plugins communicate only through filesystem state. No direct function calls.
@@ -154,7 +154,7 @@ Register the plugin in `.claude-plugin/marketplace.json`.
 | `scripts/diff-analyzer.py` | V1 deep: unified diff analysis with hunk classification |
 | `scripts/trust-model.py` | V2 batch: trust recalculation and distribution report |
 | `scripts/session-report.py` | V4 report: formatted session dashboard |
-| `scripts/learnings.py` | V6: Gauss Learning — cross-session EMA accumulation |
+| `scripts/learnings.py` | V6: Exponential Strategy Averaging — cross-session EMA accumulation |
 
 Hooks resolve shared code via:
 ```bash

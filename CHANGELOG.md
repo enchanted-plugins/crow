@@ -17,7 +17,7 @@ The current shipped release. See [README.md](README.md) for the complete feature
 
 ### Highlights
 - 4 plugins covering the change-observation lifecycle.
-- 6 named engines (H1 Semantic Diff, H2 Bayesian Trust, H3 Info-Gain, H4 Continuity, H5 Adversarial Robustness, H6 Session Learning) — formal derivations in [docs/science/README.md](docs/science/README.md).
+- 6 named engines (H1 Semantic Diff, H2 Bayesian Trust, H3 Info-Gain, H4 Continuity, H5 Adversarial Robustness, H6 Exponential Strategy Averaging) — formal derivations in [docs/science/README.md](docs/science/README.md).
 - 4 managed agents across the three ecosystem tiers.
 - Change-tracker hook: semantic diff + trust scoring on every edit.
 - Session-memory hook: continuity graph persists across compaction boundaries.
