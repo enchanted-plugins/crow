@@ -17,8 +17,8 @@ echo '{"role":"user","content":"test"}' > "$MOCK_TRANSCRIPT"
 SESSION_HASH=$(md5sum "$MOCK_TRANSCRIPT" 2>/dev/null | cut -c1-8 || echo "test")
 
 # Clean state
-rm -f "/tmp/hornet-changes-${SESSION_HASH}.jsonl"
-rm -f "/tmp/hornet-trust-${SESSION_HASH}.jsonl"
+rm -f "/tmp/raven-changes-${SESSION_HASH}.jsonl"
+rm -f "/tmp/raven-trust-${SESSION_HASH}.jsonl"
 rm -f "${REPO_ROOT}/plugins/change-tracker/state/changes.jsonl"
 rm -rf "${REPO_ROOT}/plugins/change-tracker/state/changes.jsonl.lock"
 rm -f "${REPO_ROOT}/plugins/change-tracker/state/metrics.jsonl"
@@ -65,8 +65,8 @@ fi
 
 # Cleanup
 rm -f "$TEST_FILE" "$MOCK_TRANSCRIPT"
-rm -f "/tmp/hornet-changes-${SESSION_HASH}.jsonl"
-rm -f "/tmp/hornet-trust-${SESSION_HASH}.jsonl"
+rm -f "/tmp/raven-changes-${SESSION_HASH}.jsonl"
+rm -f "/tmp/raven-trust-${SESSION_HASH}.jsonl"
 rm -f "${REPO_ROOT}/plugins/change-tracker/state/changes.jsonl"
 rm -rf "${REPO_ROOT}/plugins/change-tracker/state/changes.jsonl.lock"
 rm -f "${REPO_ROOT}/plugins/change-tracker/state/metrics.jsonl"

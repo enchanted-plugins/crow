@@ -12,7 +12,7 @@ graph TB
     session_memory_metrics["session-memory/state/metrics.jsonl<br/><small></small>"]
     trust_scorer_metrics["trust-scorer/state/metrics.jsonl<br/><small></small>"]
     Write --> trust_scorer_metrics
-    report["📊 /allay:report<br/>Aggregates all metrics"]
+    report["📊 /fae:report<br/>Aggregates all metrics"]
     change_tracker_metrics --> report
     decision_gate_metrics --> report
     session_memory_metrics --> report

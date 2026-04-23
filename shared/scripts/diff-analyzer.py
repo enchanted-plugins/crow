@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hornet V1 deep: Semantic diff analysis with hunk classification and complexity scoring.
+"""Raven V1 deep: Semantic diff analysis with hunk classification and complexity scoring.
 
 Analyzes unified diffs to classify changes at the hunk level.
 Called by track-change.sh when Python is available and change is large.

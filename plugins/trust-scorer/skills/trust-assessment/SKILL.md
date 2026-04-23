@@ -49,7 +49,7 @@ IF trust is critical (< 0.2):
 </decision_tree>
 
 <trust_model_explanation>
-Hornet uses Beta-Bernoulli conjugate priors for trust:
+Crow uses Beta-Bernoulli conjugate priors for trust:
 - Each file starts at Beta(2, 2) — a mildly uncertain prior (mean = 0.5)
 - Each change updates: alpha += likelihood, beta += (1 - likelihood)
 - Likelihood depends on change type: docs (0.95), tests (0.85), source (0.7), config (0.3-0.5)

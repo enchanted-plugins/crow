@@ -28,7 +28,7 @@ source "${SHARED_DIR}/metrics.sh"
 source "${SHARED_DIR}/compat.sh"
 
 # ── Read hook input from stdin (capped at 1MB) ──
-HOOK_INPUT=$(hornet_read_stdin 1048576)
+HOOK_INPUT=$(raven_read_stdin 1048576)
 
 if ! validate_json "$HOOK_INPUT"; then
   exit 0
@@ -49,16 +49,16 @@ DECODED=$(printf "%s" "$FILE_PATH" | sed -e 's/%2[eE]/./g' -e 's/%2[fF]/\//g' -e
 if [[ "$DECODED" == *".."* ]]; then exit 0; fi
 
 # ── Session hash ──
-SESSION_HASH=$(hornet_md5_file "${HOOK_TRANSCRIPT_PATH}" || echo "fallback-$$")
+SESSION_HASH=$(raven_md5_file "${HOOK_TRANSCRIPT_PATH}" || echo "fallback-$$")
 
 # ── Session cache file ──
-CACHE_FILE="${HORNET_CACHE_PREFIX}changes-${SESSION_HASH}.jsonl"
+CACHE_FILE="${RAVEN_CACHE_PREFIX}changes-${SESSION_HASH}.jsonl"
 touch "$CACHE_FILE" 2>/dev/null || exit 0
 
 # ── Compute current file hash ──
 FILE_HASH=""
 if [[ -f "$FILE_PATH" ]]; then
-  FILE_HASH=$(hornet_sha256_file "$FILE_PATH" || true)
+  FILE_HASH=$(raven_sha256_file "$FILE_PATH" || true)
 fi
 
 if [[ -z "$FILE_HASH" ]]; then

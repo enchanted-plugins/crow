@@ -1,5 +1,5 @@
 {
-  "description": "Hornet decision-gate: advisory review after file writes based on trust scores",
+  "description": "Crow decision-gate: advisory review after file writes based on trust scores",
   "hooks": {
     "PostToolUse": [
       {

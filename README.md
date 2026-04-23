@@ -1,4 +1,4 @@
-# Hornet
+# Crow
 
 <p>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-3fb950?style=for-the-badge"></a>
@@ -15,13 +15,13 @@ Real-time change comprehension. Bayesian trust scoring. Information-gain review.
 
 **4 plugins. 6 algorithms. 4 agents. Every change accounted for.**
 
-> Claude changed 12 files in 8 turns. I didn't read a single diff. Hornet told me
+> Claude changed 12 files in 8 turns. I didn't read a single diff. Crow told me
 > the auth migration was safe (trust: 0.82), the config change was not (trust: 0.31),
 > and the test deletions were adversarial (trust: 0.18). I reviewed 2 files instead of 12.
 
 ## Origin
 
-Hornet takes her name from **Hornet of Hollow Knight** — an explorer who survives hostile terrain by observing carefully before every move. Every AI-assisted edit is hostile terrain until its diff has been read; Hornet reads it for you and scores trust before it reaches main.
+**Crow** takes its name from **Alex's Mobs** — a sharp-eyed corvid that perches over disturbances, inspects every object it finds, remembers faces, and sorts friend from threat. Every AI-assisted edit is a disturbance until its diff has been read; Crow reads it for you and scores trust before it reaches main.
 
 The question this plugin answers: *What just happened?*
 
@@ -34,20 +34,20 @@ The question this plugin answers: *What just happened?*
 Not for:
 
 - Solo hack sessions where every edit is intentional and review friction is pure cost.
-- Teams that want a blocking gate — Hornet is advisory by design (see [shared/conduct/hooks.md](shared/conduct/hooks.md) § Injection over denial).
+- Teams that want a blocking gate — Crow is advisory by design (see [shared/conduct/hooks.md](shared/conduct/hooks.md) § Injection over denial).
 
 ## Contents
 
 - [The Problem](#the-problem)
 - [How It Works](#how-it-works)
-- [What Makes Hornet Different](#what-makes-hornet-different)
+- [What Makes Crow Different](#what-makes-raven-different)
 - [The Full Lifecycle](#the-full-lifecycle)
 - [Install](#install)
 - [Quickstart](#quickstart)
 - [4 Plugins, 4 Agents, 6 Algorithms](#4-plugins-4-agents-6-algorithms)
 - [What You Get Per Session](#what-you-get-per-session)
 - [Roadmap](#roadmap)
-- [The Science Behind Hornet](#the-science-behind-hornet)
+- [The Science Behind Crow](#the-science-behind-raven)
 - [Commands](#commands)
 - [How Trust Scoring Works](#how-trust-scoring-works)
 - [How Information-Gain Ordering Works](#how-information-gain-ordering-works)
@@ -76,7 +76,7 @@ Four plugins, one concern each, bound to specific hook points. **decision-gate**
 <p align="center">
   <a href="docs/assets/pipeline.mmd" title="View hook-binding diagram source (Mermaid)">
     <img src="docs/assets/pipeline.svg"
-         alt="Hornet hook bindings: Claude Code file changes fan out into decision-gate (PreToolUse · H3/H5), change-tracker (PostToolUse · H1), trust-scorer (PostToolUse · H2), session-memory (PreCompact · H4/H6); each plugin emits its own state artifact (advisory, changes.jsonl, trust.json, session-graph.json)"
+         alt="Crow hook bindings: Claude Code file changes fan out into decision-gate (PreToolUse · H3/H5), change-tracker (PostToolUse · H1), trust-scorer (PostToolUse · H2), session-memory (PreCompact · H4/H6); each plugin emits its own state artifact (advisory, changes.jsonl, trust.json, session-graph.json)"
          width="100%" style="max-width:1100px;">
   </a>
 </p>
@@ -89,7 +89,7 @@ Source: [docs/assets/pipeline.mmd](docs/assets/pipeline.mmd) · Regeneration com
 
 Each plugin owns one concern. No overlap. No dependencies between plugins.
 
-## What Makes Hornet Different
+## What Makes Crow Different
 
 ### It scores trust instead of flagging changes
 
@@ -105,7 +105,7 @@ For any file under trust 0.4, the decision-gate agent generates specific adversa
 
 ### It remembers your review patterns across sessions
 
-H6 Exponential Strategy Averaging (cross-session EMA) adapts priors per file type. After N sessions, Hornet knows: config changes always get flagged by this developer, test changes are usually safe, schema changes require careful review. The classifier's defaults give way to what you actually do.
+H6 Exponential Strategy Averaging (cross-session EMA) adapts priors per file type. After N sessions, Crow knows: config changes always get flagged by this developer, test changes are usually safe, schema changes require careful review. The classifier's defaults give way to what you actually do.
 
 ## The Full Lifecycle
 
@@ -114,7 +114,7 @@ The tool executes, then `PostToolUse` runs decision-gate (H3 IG-ranking + H5 adv
 <p align="center">
   <a href="docs/assets/lifecycle.mmd" title="View session-lifecycle diagram source (Mermaid)">
     <img src="docs/assets/lifecycle.svg"
-         alt="Hornet session lifecycle: session start, file change, PreToolUse (decision-gate) runs trust-check and IG ranking, tool executes, PostToolUse (change-tracker + trust-scorer) classifies and updates posterior; compaction triggers PreCompact (session-memory) to write session-graph.json; context wiped; restorer agent rebuilds; session continues"
+         alt="Crow session lifecycle: session start, file change, PreToolUse (decision-gate) runs trust-check and IG ranking, tool executes, PostToolUse (change-tracker + trust-scorer) classifies and updates posterior; compaction triggers PreCompact (session-memory) to write session-graph.json; context wiped; restorer agent rebuilds; session continues"
          width="100%" style="max-width:1100px;">
   </a>
 </p>
@@ -127,23 +127,23 @@ Source: [docs/assets/lifecycle.mmd](docs/assets/lifecycle.mmd) · Regeneration c
 
 ## Install
 
-Hornet ships as 4 plugins that feed each other (change-tracker → trust-scorer → decision-gate → session-memory). One meta-plugin — `full` — lists all four as dependencies, so a single install pulls in the whole chain.
+Crow ships as 4 plugins that feed each other (change-tracker → trust-scorer → decision-gate → session-memory). One meta-plugin — `full` — lists all four as dependencies, so a single install pulls in the whole chain.
 
 **In Claude Code** (recommended):
 
 ```
-/plugin marketplace add enchanted-plugins/hornet
-/plugin install full@hornet
+/plugin marketplace add enchanted-plugins/raven
+/plugin install full@raven
 ```
 
 Claude Code resolves the dependency list and installs all 4 plugins. Verify with `/plugin list`.
 
-**Want to cherry-pick?** Individual plugins are still installable by name — e.g. `/plugin install hornet-trust-scorer@hornet` if you only need scoring. The pipeline is designed to work end-to-end, though, so `full@hornet` is the path we recommend.
+**Want to cherry-pick?** Individual plugins are still installable by name — e.g. `/plugin install raven-trust-scorer@raven` if you only need scoring. The pipeline is designed to work end-to-end, though, so `full@raven` is the path we recommend.
 
 **Via shell** (also installs `shared/*.sh` and `shared/scripts/*.py` locally so hooks work offline):
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/enchanted-plugins/hornet/main/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/enchanted-plugins/raven/main/install.sh)
 ```
 
 ## Quickstart
@@ -151,21 +151,21 @@ bash <(curl -s https://raw.githubusercontent.com/enchanted-plugins/hornet/main/i
 Install, let Claude edit something, read the trust score. Sixty seconds:
 
 ```
-/plugin install full@hornet
+/plugin install full@raven
 # ...let Claude make any Write / Edit...
-/hornet:trust
+/raven:trust
 ```
 
-Expected: `/hornet:trust` prints per-file rows sorted riskiest-first — trust score, band (HIGH / MEDIUM / LOW), and the specific engine signals (H1 semantic delta, H2 Bayesian posterior, H3 info-gain, H4 continuity) driving the verdict. See [docs/getting-started.md](docs/getting-started.md) for the full guided first run and [THREAT_MODEL.md](THREAT_MODEL.md) for the attacker-input model Hornet is hardened against.
+Expected: `/raven:trust` prints per-file rows sorted riskiest-first — trust score, band (HIGH / MEDIUM / LOW), and the specific engine signals (H1 semantic delta, H2 Bayesian posterior, H3 info-gain, H4 continuity) driving the verdict. See [docs/getting-started.md](docs/getting-started.md) for the full guided first run and [THREAT_MODEL.md](THREAT_MODEL.md) for the attacker-input model Crow is hardened against.
 
 ## 4 Plugins, 4 Agents, 6 Algorithms
 
 | Plugin | Hook | Command | What |
 |--------|------|---------|------|
-| change-tracker | PostToolUse | `/hornet:changes` | Semantic diff compression + classification |
-| trust-scorer | PostToolUse | `/hornet:trust` | Bayesian trust scoring + alerts |
-| decision-gate | PostToolUse | `/hornet:review` | IG-ordered review + adversarial questions |
-| session-memory | PreCompact | `/hornet:session` | Continuity graph + Exponential Strategy Averaging |
+| change-tracker | PostToolUse | `/raven:changes` | Semantic diff compression + classification |
+| trust-scorer | PostToolUse | `/raven:trust` | Bayesian trust scoring + alerts |
+| decision-gate | PostToolUse | `/raven:review` | IG-ordered review + adversarial questions |
+| session-memory | PreCompact | `/raven:session` | Continuity graph + Exponential Strategy Averaging |
 
 | Agent | Model | Plugin | What |
 |-------|-------|--------|------|
@@ -176,12 +176,12 @@ Expected: `/hornet:trust` prints per-file rows sorted riskiest-first — trust s
 
 ## What You Get Per Session
 
-Three hook events fan out into four color-coded journals — one per sub-plugin — and converge on the enchanted-mcp bus and the `/hornet:*` query surface. Color maps engines to journals: blue = change-tracker (V1 semantic-diff) · purple = trust-scorer (V2 Bayesian + V6 Exponential Strategy Averaging) · red = decision-gate (V3 info-gain) · yellow = session-memory (V4 continuity graph).
+Three hook events fan out into four color-coded journals — one per sub-plugin — and converge on the enchanted-mcp bus and the `/raven:*` query surface. Color maps engines to journals: blue = change-tracker (V1 semantic-diff) · purple = trust-scorer (V2 Bayesian + V6 Exponential Strategy Averaging) · red = decision-gate (V3 info-gain) · yellow = session-memory (V4 continuity graph).
 
 <p align="center">
   <a href="docs/assets/state-flow.mmd" title="View state-flow diagram source (Mermaid)">
     <img src="docs/assets/state-flow.svg"
-         alt="Hornet per-session state flow: three hooks (PreToolUse, PostToolUse Write|Edit|MultiEdit, PreCompact) feed four color-coded journals (change-tracker changes+metrics, trust-scorer trust+learnings+metrics, decision-gate metrics, session-memory graph+summary+metrics) converging on the enchanted-mcp bus and the /hornet:* query surface"
+         alt="Crow per-session state flow: three hooks (PreToolUse, PostToolUse Write|Edit|MultiEdit, PreCompact) feed four color-coded journals (change-tracker changes+metrics, trust-scorer trust+learnings+metrics, decision-gate metrics, session-memory graph+summary+metrics) converging on the enchanted-mcp bus and the /raven:* query surface"
          width="100%" style="max-width:1100px;">
   </a>
 </p>
@@ -213,15 +213,15 @@ session-memory/state/
 
 ## Roadmap
 
-Tracked in [docs/ROADMAP.md](docs/ROADMAP.md) and the shared [ecosystem map](https://github.com/enchanted-plugins/flux/blob/main/docs/ecosystem.md). For upcoming work specific to Hornet, see issues tagged [roadmap](https://github.com/enchanted-plugins/hornet/labels/roadmap).
+Tracked in [docs/ROADMAP.md](docs/ROADMAP.md) and the shared [ecosystem map](https://github.com/enchanted-plugins/wixie/blob/main/docs/ecosystem.md). For upcoming work specific to Crow, see issues tagged [roadmap](https://github.com/enchanted-plugins/raven/labels/roadmap).
 
-## The Science Behind Hornet
+## The Science Behind Crow
 
 Six named algorithms power every decision:
 
 ### H1. Semantic Diff Compression (Change Tracker)
 
-Raw diffs are noise. Hornet classifies each change by type and clusters related changes across files.
+Raw diffs are noise. Crow classifies each change by type and clusters related changes across files.
 
 Change types: `source_code`, `config_change`, `test_change`, `documentation`, `schema_change`, `dependency_change`.
 Impact radius: local (1 file), module (2-5 files), systemic (6+ files).
@@ -279,17 +279,17 @@ Exponential moving average over per-type trust rates across sessions.
 
 <p align="center"><img src="docs/assets/math/h6-gauss.svg" alt="r_new = alpha · s_current + (1 - alpha) · r_prior; alpha = 0.3"></p>
 
-After N sessions, Hornet knows: config changes always get flagged, test changes are usually safe,
+After N sessions, Crow knows: config changes always get flagged, test changes are usually safe,
 this developer always reviews schema changes carefully. Adapts priors accordingly.
 
 ## Commands
 
 | Command | Plugin | What |
 |---------|--------|------|
-| `/hornet:changes` | change-tracker | All changes grouped by type and file |
-| `/hornet:trust` | trust-scorer | Trust scores sorted riskiest-first |
-| `/hornet:review` | decision-gate | IG-ranked review queue with adversarial questions |
-| `/hornet:session` | session-memory | Full session dashboard |
+| `/raven:changes` | change-tracker | All changes grouped by type and file |
+| `/raven:trust` | trust-scorer | Trust scores sorted riskiest-first |
+| `/raven:review` | decision-gate | IG-ranked review queue with adversarial questions |
+| `/raven:session` | session-memory | Full session dashboard |
 
 ## How Trust Scoring Works
 
@@ -301,7 +301,7 @@ this developer always reviews schema changes carefully. Adapts priors accordingl
 
 ## How Information-Gain Ordering Works
 
-Not all files are equally worth reviewing. Hornet ranks by uncertainty:
+Not all files are equally worth reviewing. Crow ranks by uncertainty:
 - Trust 0.5 → IG 1.0 (maximum uncertainty — you need to look at this)
 - Trust 0.1 → IG 0.47 (clearly bad — you already know)
 - Trust 0.9 → IG 0.47 (clearly good — don't waste time)
@@ -310,7 +310,7 @@ Review the uncertain files first. Skip the ones where trust is already decided.
 
 ## vs Everything Else
 
-| | Hornet | Gryph | Context Mode | ClaudeWatch | Anthropic Review |
+| | Crow | Gryph | Context Mode | ClaudeWatch | Anthropic Review |
 |---|---|---|---|---|---|
 | Real-time awareness | in-session | post-hoc | — | — | post-PR |
 | Trust scoring | Bayesian | — | — | — | — |
@@ -322,7 +322,7 @@ Review the uncertain files first. Skip the ones where trust is already decided.
 
 ## Agent Conduct (9 Modules)
 
-Every skill inherits a reusable behavioral contract from [shared/](shared/) — loaded once into [CLAUDE.md](CLAUDE.md), applied across all plugins. This is how Claude *acts* inside Hornet: deterministic, surgical, verifiable. Not a suggestion; a contract.
+Every skill inherits a reusable behavioral contract from [shared/](shared/) — loaded once into [CLAUDE.md](CLAUDE.md), applied across all plugins. This is how Claude *acts* inside Crow: deterministic, surgical, verifiable. Not a suggestion; a contract.
 
 | Module | What it governs |
 |--------|-----------------|
@@ -344,7 +344,7 @@ Interactive architecture explorer with plugin diagrams, agent cards, and data fl
 
 ## Acknowledgments
 
-Hornet builds on foundations laid by others:
+Crow builds on foundations laid by others:
 
 - **[Claude Code](https://github.com/anthropics/claude-code)** (Anthropic) — the plugin surface this work extends.
 - **[Keep a Changelog](https://keepachangelog.com/)** — CHANGELOG convention.
@@ -356,7 +356,7 @@ Hornet builds on foundations laid by others:
 
 ## Versioning & release cadence
 
-Hornet follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Breaking changes land on major bumps only; the [CHANGELOG](CHANGELOG.md) flags them explicitly. Release cadence is opportunistic — tags land when accumulated fixes or features justify a cut, not on a fixed schedule. Migration notes between majors live in [docs/upgrading.md](docs/upgrading.md).
+Crow follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Breaking changes land on major bumps only; the [CHANGELOG](CHANGELOG.md) flags them explicitly. Release cadence is opportunistic — tags land when accumulated fixes or features justify a cut, not on a fixed schedule. Migration notes between majors live in [docs/upgrading.md](docs/upgrading.md).
 
 ## Contributing
 
@@ -367,11 +367,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md)
 If you use this project in research or derivative work, please cite it:
 
 ```bibtex
-@software{hornet_2026,
-  title = {Hornet},
+@software{raven_2026,
+  title = {Crow},
   author = {{Klaiderman}},
   year = {2026},
-  url = {https://github.com/enchanted-plugins/hornet}
+  url = {https://github.com/enchanted-plugins/raven}
 }
 ```
 
@@ -385,8 +385,8 @@ MIT
 
 ## Role in the ecosystem
 
-Hornet is the **change-trust layer** — it scores every Write/Edit the agent makes before the change influences a commit. Upstream, Flux's prompts produce the changes Hornet observes. Downstream, Weaver consumes Hornet's trust signal in its W4 reviewer routing (blame × recency × CODEOWNERS × **Hornet availability**), and Mantis uses Hornet's trust as a gating prior before spending sandbox time on deep review.
+Crow is the **change-trust layer** — it scores every Write/Edit the agent makes before the change influences a commit. Upstream, Wixie's prompts produce the changes Crow observes. Downstream, Sylph consumes Crow's trust signal in its W4 reviewer routing (blame × recency × CODEOWNERS × **Crow availability**), and Lich uses Crow's trust as a gating prior before spending sandbox time on deep review.
 
-Hornet does not engineer prompts (Flux's lane), track tokens (Allay's lane), review code correctness (Mantis's lane), orchestrate PR lifecycle (Weaver's lane), or scan security surfaces (Reaper's lane). It scores trust in what just happened.
+Crow does not engineer prompts (Wixie's lane), track tokens (Fae's lane), review code correctness (Lich's lane), orchestrate PR lifecycle (Sylph's lane), or scan security surfaces (Hydra's lane). It scores trust in what just happened.
 
 See [docs/ecosystem.md § Data Flow Between Plugins](docs/ecosystem.md#data-flow-between-plugins) for the full map.

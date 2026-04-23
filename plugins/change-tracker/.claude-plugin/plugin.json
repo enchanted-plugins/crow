@@ -1,5 +1,5 @@
 {
-  "name": "hornet-change-tracker",
+  "name": "raven-change-tracker",
   "description": "Tracks every file change with semantic diff compression and change classification.",
   "version": "1.0.0",
   "author": {

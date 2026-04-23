@@ -18,8 +18,8 @@ echo '{"role":"user","content":"test"}' > "$MOCK_TRANSCRIPT"
 SESSION_HASH=$(md5sum "$MOCK_TRANSCRIPT" 2>/dev/null | cut -c1-8 || echo "test")
 
 # Clean state
-rm -f "/tmp/hornet-changes-${SESSION_HASH}.jsonl"
-rm -f "/tmp/hornet-trust-${SESSION_HASH}.jsonl"
+rm -f "/tmp/raven-changes-${SESSION_HASH}.jsonl"
+rm -f "/tmp/raven-trust-${SESSION_HASH}.jsonl"
 rm -f "${REPO_ROOT}/plugins/change-tracker/state/changes.jsonl"
 rm -rf "${REPO_ROOT}/plugins/change-tracker/state/changes.jsonl.lock"
 rm -f "${REPO_ROOT}/plugins/change-tracker/state/metrics.jsonl"
@@ -55,7 +55,7 @@ done
 # alpha ≈ 2 + 4*0.3 = 3.2, beta ≈ 2 + 4*0.7 = 4.8
 # trust ≈ 3.2/8.0 = 0.4 — borderline low
 # Check if any low-trust warning appeared
-if [[ "$STDERR_OUT" != *"[Hornet]"* ]]; then
+if [[ "$STDERR_OUT" != *"[Crow]"* ]]; then
   # It's possible the score landed exactly at boundary. Check trust.json directly.
   TRUST_FILE="${REPO_ROOT}/plugins/trust-scorer/state/trust.json"
   FILE_KEY=$(printf "%s" "$TEST_FILE" | jq -Rr @json)
@@ -74,8 +74,8 @@ fi
 # Cleanup
 rm -f "$MOCK_TRANSCRIPT"
 rm -rf "$TMPDIR_TEST"
-rm -f "/tmp/hornet-changes-${SESSION_HASH}.jsonl"
-rm -f "/tmp/hornet-trust-${SESSION_HASH}.jsonl"
+rm -f "/tmp/raven-changes-${SESSION_HASH}.jsonl"
+rm -f "/tmp/raven-trust-${SESSION_HASH}.jsonl"
 rm -f "${REPO_ROOT}/plugins/change-tracker/state/changes.jsonl"
 rm -rf "${REPO_ROOT}/plugins/change-tracker/state/changes.jsonl.lock"
 rm -f "${REPO_ROOT}/plugins/change-tracker/state/metrics.jsonl"

@@ -1,5 +1,5 @@
 {
-  "name": "hornet-decision-gate",
+  "name": "raven-decision-gate",
   "description": "Per-change review with information-gain ordering and adversarial self-review for low-trust changes.",
   "version": "1.0.0",
   "author": {

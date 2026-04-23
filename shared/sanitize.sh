@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Hornet shared sanitization utilities
+# Crow shared sanitization utilities
 
 sanitize_path() {
   local path="$1"

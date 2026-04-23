@@ -1,11 +1,11 @@
 ---
-name: hornet:review
+name: raven:review
 description: >
   Trigger a manual review of pending changes. Shows information-gain
   ranked list of changes that should be reviewed, with adversarial questions.
 ---
 
-When the user runs `/hornet:review`, present the highest-value changes to review.
+When the user runs `/raven:review`, present the highest-value changes to review.
 
 ## Data Sources
 

@@ -1,12 +1,12 @@
 cff-version: 1.2.0
-title: "Hornet"
+title: "Raven"
 message: "If you use this software, please cite it as below."
 type: software
 authors:
   - alias: klaiderman
     affiliation: "enchanted-plugins"
-repository-code: "https://github.com/enchanted-plugins/hornet"
-url: "https://github.com/enchanted-plugins/hornet"
+repository-code: "https://github.com/enchanted-plugins/raven"
+url: "https://github.com/enchanted-plugins/raven"
 license: MIT
 version: "1.0.0"
 date-released: "2026-04-20"

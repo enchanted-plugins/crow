@@ -1,5 +1,5 @@
 {
-  "name": "hornet-session-memory",
+  "name": "raven-session-memory",
   "description": "Session continuity graph for compaction survival. Preserves decision history and learned preferences.",
   "version": "1.0.0",
   "author": {

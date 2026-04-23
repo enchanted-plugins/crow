@@ -1,20 +1,20 @@
-# Getting started with Hornet
+# Getting started with Crow
 
-Hornet watches every edit Claude makes and scores it. Semantic diff first, then Bayesian trust. The goal: catch untrustworthy changes before they reach your branch. This page gets you from zero to a live trust readout in under 5 minutes.
+Crow watches every edit Claude makes and scores it. Semantic diff first, then Bayesian trust. The goal: catch untrustworthy changes before they reach your branch. This page gets you from zero to a live trust readout in under 5 minutes.
 
 ## 1. Install (60 seconds)
 
 ```
-/plugin marketplace add enchanted-plugins/hornet
-/plugin install full@hornet
+/plugin marketplace add enchanted-plugins/raven
+/plugin install full@raven
 /plugin list
 ```
 
-You should see four Hornet sub-plugins including `change-tracker`, `trust-scorer`, `decision-gate`, and `session-memory`. If any are missing, see [installation.md](installation.md).
+You should see four Crow sub-plugins including `change-tracker`, `trust-scorer`, `decision-gate`, and `session-memory`. If any are missing, see [installation.md](installation.md).
 
 ## 2. Make a change and watch
 
-Start a normal Claude Code session. Ask Claude to edit any file. When the Write/Edit tool returns, Hornet's `change-tracker` post-tool hook fires automatically and computes:
+Start a normal Claude Code session. Ask Claude to edit any file. When the Write/Edit tool returns, Crow's `change-tracker` post-tool hook fires automatically and computes:
 
 - **Semantic diff (H1)** — what the change *means*, not just what the bytes are.
 - **Info-gain (H3)** — how surprising this change is relative to recent edits.
@@ -50,7 +50,7 @@ For destructive or cross-cutting operations, the `decision-gate` plugin inserts 
 /review
 ```
 
-Surfaces the staged changes plus Hornet's trust summary in one view. You can approve, ask Claude to patch specific rows, or roll back the session to the last high-trust checkpoint.
+Surfaces the staged changes plus Crow's trust summary in one view. You can approve, ask Claude to patch specific rows, or roll back the session to the last high-trust checkpoint.
 
 ## 6. Continuity across compaction
 
@@ -62,8 +62,8 @@ Session-memory (H4) persists the continuity graph across compaction. When the wi
 
 ## Next steps
 
-- [examples/README.md](../examples/README.md) — real diffs + the trust scores Hornet assigned them.
-- [THREAT_MODEL.md](../THREAT_MODEL.md) — attacker inputs and trust-gaming surfaces Hornet is hardened against.
+- [examples/README.md](../examples/README.md) — real diffs + the trust scores Crow assigned them.
+- [THREAT_MODEL.md](../THREAT_MODEL.md) — attacker inputs and trust-gaming surfaces Crow is hardened against.
 - [docs/science/README.md](science/README.md) — Bayesian trust, semantic diff, info-gain, continuity, adversarial robustness, session learning — derived.
 - [docs/architecture/](architecture/) — auto-generated diagram.
 

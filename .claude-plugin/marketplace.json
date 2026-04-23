@@ -1,39 +1,39 @@
 {
-  "name": "hornet",
+  "name": "raven",
   "owner": {
     "name": "enchanted-plugins"
   },
   "metadata": {
     "description": "Real-time change comprehension, Bayesian trust scoring, and information-gain decision support for Claude Code.",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "plugins": [
     {
       "name": "full",
       "source": "./plugins/full",
-      "description": "Meta-plugin. One install pulls in all 4 Hornet plugins via dependency resolution.",
+      "description": "Meta-plugin. One install pulls in all 4 Crow plugins via dependency resolution.",
       "category": "meta"
     },
     {
-      "name": "hornet-change-tracker",
+      "name": "raven-change-tracker",
       "source": "./plugins/change-tracker",
       "description": "Tracks every file change with semantic diff compression and change classification.",
       "category": "development"
     },
     {
-      "name": "hornet-trust-scorer",
+      "name": "raven-trust-scorer",
       "source": "./plugins/trust-scorer",
       "description": "Bayesian trust scoring of each change with prior-based confidence and posterior updates.",
       "category": "development"
     },
     {
-      "name": "hornet-decision-gate",
+      "name": "raven-decision-gate",
       "source": "./plugins/decision-gate",
       "description": "Per-change review with information-gain ordering and adversarial self-review for low-trust changes.",
       "category": "development"
     },
     {
-      "name": "hornet-session-memory",
+      "name": "raven-session-memory",
       "source": "./plugins/session-memory",
       "description": "Session continuity graph for compaction survival. Preserves decision history and learned preferences.",
       "category": "development"

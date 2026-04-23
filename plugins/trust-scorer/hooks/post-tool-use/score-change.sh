@@ -28,7 +28,7 @@ source "${SHARED_DIR}/metrics.sh"
 source "${SHARED_DIR}/compat.sh"
 
 # ── Read hook input from stdin (capped at 1MB) ──
-HOOK_INPUT=$(hornet_read_stdin 1048576)
+HOOK_INPUT=$(raven_read_stdin 1048576)
 
 if ! validate_json "$HOOK_INPUT"; then
   exit 0
@@ -49,10 +49,10 @@ DECODED=$(printf "%s" "$FILE_PATH" | sed -e 's/%2[eE]/./g' -e 's/%2[fF]/\//g' -e
 if [[ "$DECODED" == *".."* ]]; then exit 0; fi
 
 # ── Session hash ──
-SESSION_HASH=$(hornet_md5_file "${HOOK_TRANSCRIPT_PATH}" || echo "fallback-$$")
+SESSION_HASH=$(raven_md5_file "${HOOK_TRANSCRIPT_PATH}" || echo "fallback-$$")
 
 # ── Read latest change entry from change-tracker session cache ──
-CHANGES_CACHE="${HORNET_CACHE_PREFIX}changes-${SESSION_HASH}.jsonl"
+CHANGES_CACHE="${RAVEN_CACHE_PREFIX}changes-${SESSION_HASH}.jsonl"
 CHANGE_TYPE="source_code"
 PREV_HASH=""
 CURRENT_HASH=""
@@ -68,9 +68,9 @@ fi
 
 # ── State directory ──
 STATE_DIR="${PLUGIN_ROOT}/state"
-TRUST_FILE="${STATE_DIR}/${HORNET_TRUST_FILE##*/}"
+TRUST_FILE="${STATE_DIR}/${RAVEN_TRUST_FILE##*/}"
 TRUST_TMP="${TRUST_FILE}.tmp"
-TRUST_LOCK="${TRUST_FILE}${HORNET_LOCK_SUFFIX}"
+TRUST_LOCK="${TRUST_FILE}${RAVEN_LOCK_SUFFIX}"
 
 # ── Read existing trust (or initialize) ──
 TRUST_DATA="{}"
@@ -83,45 +83,45 @@ fi
 # ── Read per-file prior (or use Beta(2,2) default) ──
 # Use jq -n to safely construct the key lookup
 FILE_KEY=$(printf "%s" "$FILE_PATH" | jq -Rr @json 2>/dev/null)
-PRIOR_ALPHA=$(printf "%s" "$TRUST_DATA" | jq -r ".[${FILE_KEY}].alpha // ${HORNET_PRIOR_ALPHA}" 2>/dev/null)
-PRIOR_BETA=$(printf "%s" "$TRUST_DATA" | jq -r ".[${FILE_KEY}].beta // ${HORNET_PRIOR_BETA}" 2>/dev/null)
+PRIOR_ALPHA=$(printf "%s" "$TRUST_DATA" | jq -r ".[${FILE_KEY}].alpha // ${RAVEN_PRIOR_ALPHA}" 2>/dev/null)
+PRIOR_BETA=$(printf "%s" "$TRUST_DATA" | jq -r ".[${FILE_KEY}].beta // ${RAVEN_PRIOR_BETA}" 2>/dev/null)
 
 # Ensure numeric
-PRIOR_ALPHA=$(printf "%s" "$PRIOR_ALPHA" | grep -oE '[0-9]+\.?[0-9]*' || echo "$HORNET_PRIOR_ALPHA")
-PRIOR_BETA=$(printf "%s" "$PRIOR_BETA" | grep -oE '[0-9]+\.?[0-9]*' || echo "$HORNET_PRIOR_BETA")
+PRIOR_ALPHA=$(printf "%s" "$PRIOR_ALPHA" | grep -oE '[0-9]+\.?[0-9]*' || echo "$RAVEN_PRIOR_ALPHA")
+PRIOR_BETA=$(printf "%s" "$PRIOR_BETA" | grep -oE '[0-9]+\.?[0-9]*' || echo "$RAVEN_PRIOR_BETA")
 
 # ── V2: Compute base likelihood from change type ──
-LIKELIHOOD="$HORNET_LIKELIHOOD_SOURCE_SMALL"
+LIKELIHOOD="$RAVEN_LIKELIHOOD_SOURCE_SMALL"
 
 case "$CHANGE_TYPE" in
   documentation)
-    LIKELIHOOD="$HORNET_LIKELIHOOD_DOCUMENTATION" ;;
+    LIKELIHOOD="$RAVEN_LIKELIHOOD_DOCUMENTATION" ;;
   test_change)
-    LIKELIHOOD="$HORNET_LIKELIHOOD_TEST" ;;
+    LIKELIHOOD="$RAVEN_LIKELIHOOD_TEST" ;;
   source_code)
-    LIKELIHOOD="$HORNET_LIKELIHOOD_SOURCE_SMALL" ;;
+    LIKELIHOOD="$RAVEN_LIKELIHOOD_SOURCE_SMALL" ;;
   schema_change)
-    LIKELIHOOD="$HORNET_LIKELIHOOD_SCHEMA" ;;
+    LIKELIHOOD="$RAVEN_LIKELIHOOD_SCHEMA" ;;
   dependency_change)
-    LIKELIHOOD="$HORNET_LIKELIHOOD_DEPENDENCY" ;;
+    LIKELIHOOD="$RAVEN_LIKELIHOOD_DEPENDENCY" ;;
   config_change)
     BASENAME=$(basename "$FILE_PATH" 2>/dev/null || true)
     case "$BASENAME" in
       .env|.env.*|*secret*|*credential*|*auth*)
-        LIKELIHOOD="$HORNET_LIKELIHOOD_CONFIG_SENSITIVE" ;;
+        LIKELIHOOD="$RAVEN_LIKELIHOOD_CONFIG_SENSITIVE" ;;
       *)
-        LIKELIHOOD="$HORNET_LIKELIHOOD_CONFIG_NORMAL" ;;
+        LIKELIHOOD="$RAVEN_LIKELIHOOD_CONFIG_NORMAL" ;;
     esac
     ;;
 esac
 
 # ── V2b: Content-based signal detection ──
-# This is what distinguishes Hornet from a file-type classifier.
+# This is what distinguishes Crow from a file-type classifier.
 # Read the actual file and detect red-flag patterns.
 # Skip binary files — they produce false positives.
 RED_FLAGS=""
 
-if [[ -f "$FILE_PATH" ]] && ! hornet_is_binary "$FILE_PATH"; then
+if [[ -f "$FILE_PATH" ]] && ! raven_is_binary "$FILE_PATH"; then
   FILE_CONTENT=$(head -500 "$FILE_PATH" 2>/dev/null || true)
 
   # Test files: detect weakened/gutted assertions
@@ -217,7 +217,7 @@ TRUST_SCORE=${TRUST_SCORE:-"0.5"}
 # ── Write updated trust atomically ──
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-hornet_acquire_lock "$TRUST_LOCK" || exit 0
+raven_acquire_lock "$TRUST_LOCK" || exit 0
 
 # Re-read trust file under lock (may have changed)
 if [[ -f "$TRUST_FILE" ]] && jq empty "$TRUST_FILE" >/dev/null 2>&1; then
@@ -248,7 +248,7 @@ mv "$TRUST_TMP" "$TRUST_FILE"
 release_lock "$TRUST_LOCK"
 
 # ── Write to session trust cache ──
-TRUST_CACHE="${HORNET_CACHE_PREFIX}trust-${SESSION_HASH}.jsonl"
+TRUST_CACHE="${RAVEN_CACHE_PREFIX}trust-${SESSION_HASH}.jsonl"
 TRUST_ENTRY=$(jq -cn \
   --arg ts "$TIMESTAMP" \
   --arg file "$FILE_PATH" \
@@ -281,9 +281,9 @@ DISPLAY_SCORE=$(jq -n --argjson s "$TRUST_SCORE" '$s * 100 | floor / 100' 2>/dev
 # Short filename for display
 SHORT_FILE=$(basename "$FILE_PATH" 2>/dev/null || echo "$FILE_PATH")
 
-IS_CRITICAL=$(jq -n --argjson s "$TRUST_SCORE" --argjson t "$HORNET_TRUST_CRITICAL" 'if $s < $t then 1 else 0 end' 2>/dev/null || echo "0")
-IS_LOW=$(jq -n --argjson s "$TRUST_SCORE" --argjson t "$HORNET_TRUST_LOW" 'if $s < $t then 1 else 0 end' 2>/dev/null || echo "0")
-IS_HIGH=$(jq -n --argjson s "$TRUST_SCORE" --argjson t "$HORNET_TRUST_HIGH" 'if $s >= $t then 1 else 0 end' 2>/dev/null || echo "0")
+IS_CRITICAL=$(jq -n --argjson s "$TRUST_SCORE" --argjson t "$RAVEN_TRUST_CRITICAL" 'if $s < $t then 1 else 0 end' 2>/dev/null || echo "0")
+IS_LOW=$(jq -n --argjson s "$TRUST_SCORE" --argjson t "$RAVEN_TRUST_LOW" 'if $s < $t then 1 else 0 end' 2>/dev/null || echo "0")
+IS_HIGH=$(jq -n --argjson s "$TRUST_SCORE" --argjson t "$RAVEN_TRUST_HIGH" 'if $s >= $t then 1 else 0 end' 2>/dev/null || echo "0")
 
 # Build the flag suffix for display
 FLAG_DISPLAY=""
@@ -301,16 +301,16 @@ if [[ -n "$RED_FLAGS" ]]; then
 fi
 
 if [[ "$IS_CRITICAL" == "1" ]]; then
-  printf "[Hornet] %s  trust: %s  CRITICAL — %s (%s)" \
+  printf "[Crow] %s  trust: %s  CRITICAL — %s (%s)" \
     "$SHORT_FILE" "$DISPLAY_SCORE" "${FLAG_DISPLAY:-stop and review}" "$CHANGE_TYPE" >&2
 elif [[ "$IS_LOW" == "1" ]]; then
-  printf "[Hornet] %s  trust: %s  LOW — %s (%s)" \
+  printf "[Crow] %s  trust: %s  LOW — %s (%s)" \
     "$SHORT_FILE" "$DISPLAY_SCORE" "${FLAG_DISPLAY:-review recommended}" "$CHANGE_TYPE" >&2
 elif [[ -n "$RED_FLAGS" ]]; then
-  printf "[Hornet] %s  trust: %s  WARNING — %s (%s)" \
+  printf "[Crow] %s  trust: %s  WARNING — %s (%s)" \
     "$SHORT_FILE" "$DISPLAY_SCORE" "$FLAG_DISPLAY" "$CHANGE_TYPE" >&2
 else
-  printf "[Hornet] %s  trust: %s (%s)" \
+  printf "[Crow] %s  trust: %s (%s)" \
     "$SHORT_FILE" "$DISPLAY_SCORE" "$CHANGE_TYPE" >&2
 fi
 

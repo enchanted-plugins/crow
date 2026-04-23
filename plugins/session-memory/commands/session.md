@@ -1,11 +1,11 @@
 ---
-name: hornet:session
+name: raven:session
 description: >
   Show the current session dashboard. Trust overview, change count,
   review decisions, and cross-session learnings.
 ---
 
-When the user runs `/hornet:session`, generate a comprehensive session report.
+When the user runs `/raven:session`, generate a comprehensive session report.
 
 ## Data Sources
 
@@ -23,7 +23,7 @@ Optionally run `python3 ${CLAUDE_PLUGIN_ROOT}/../../shared/scripts/session-repor
 
 ```
 ══════════════════════════════════════
- HORNET SESSION REPORT
+ RAVEN SESSION REPORT
 ══════════════════════════════════════
 
  Trust:    avg 0.62 | 4 high, 3 medium, 2 low, 1 critical

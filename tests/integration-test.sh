@@ -6,7 +6,7 @@ REPO_ROOT="${SCRIPT_DIR}/.."
 cd "$REPO_ROOT"
 
 echo "══════════════════════════════════════"
-echo " HORNET INTEGRATION TEST"
+echo " RAVEN INTEGRATION TEST"
 echo " Full Session Simulation"
 echo "══════════════════════════════════════"
 echo ""
@@ -119,7 +119,7 @@ echo ""
 
 # ── Turn 6: Decision gate on src/auth.ts (should be quiet) ──
 echo "── Turn 6: Decision gate on src/auth.ts ───────────"
-rm -f "/tmp/hornet-gate-cooldown-${SESSION_HASH}" 2>/dev/null
+rm -f "/tmp/raven-gate-cooldown-${SESSION_HASH}" 2>/dev/null
 
 GATE_INPUT=$(jq -n \
   --arg t "$TRANSCRIPT" \
@@ -191,7 +191,7 @@ rm -f plugins/*/state/trust.json plugins/*/state/trust.json.tmp
 rm -f plugins/*/state/session-graph.json plugins/*/state/session-summary.md
 rm -f plugins/*/state/learnings.json
 rm -rf plugins/*/state/*.lock
-rm -f /tmp/hornet-* 2>/dev/null
+rm -f /tmp/raven-* 2>/dev/null
 
 echo "══════════════════════════════════════"
 echo " INTEGRATION TEST COMPLETE"

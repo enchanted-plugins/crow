@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Hornet V2 batch: Trust recalculation, distribution histogram, and risk report.
+"""Raven V2 batch: Trust recalculation, distribution histogram, and risk report.
 
 Reads trust.json and changes.jsonl, recomputes trust from full change history,
 generates a trust distribution summary.
-Called by /hornet:trust command and session-report.py.
+Called by /raven:trust command and session-report.py.
 Stdlib only — no external dependencies.
 
 Usage: python3 trust-model.py <trust_json_path> [changes_jsonl_path]

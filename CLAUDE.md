@@ -1,6 +1,6 @@
-# Hornet — Agent Contract
+# Crow — Agent Contract
 
-Audience: Claude. Hornet watches file changes, scores each for trust with a Bayesian model, orders reviews by information gain, and preserves the decision graph across compaction.
+Audience: Claude. Crow watches file changes, scores each for trust with a Bayesian model, orders reviews by information gain, and preserves the decision graph across compaction.
 
 ## Shared behavioral modules
 
@@ -29,15 +29,15 @@ When a module conflicts with a plugin-local instruction, the plugin wins — but
 
 ## Algorithms
 
-V1 Semantic Diff Compression · V2 Bayesian Trust Scoring · V3 Information-Gain Ordering · V4 Session Continuity Graph · V5 Adversarial Self-Review · V6 Exponential Strategy Averaging. Derivations in `README.md` § *The Science Behind Hornet*.
+V1 Semantic Diff Compression · V2 Bayesian Trust Scoring · V3 Information-Gain Ordering · V4 Session Continuity Graph · V5 Adversarial Self-Review · V6 Exponential Strategy Averaging. Derivations in `README.md` § *The Science Behind Crow*.
 
 ## Behavioral contracts
 
 Markers: **[H]** hook-enforced · **[A]** advisory.
 
-1. **[H] IMPORTANT — Acknowledge the `[Hornet]` stderr.** Name what was flagged, its trust score, and the change type. Silence after an advisory is a contract violation.
+1. **[H] IMPORTANT — Acknowledge the `[Crow]` stderr.** Name what was flagged, its trust score, and the change type. Silence after an advisory is a contract violation.
 2. **[A] YOU MUST pause at trust < 0.4.** Explain what you changed and why. Do not continue writing the same file without addressing the flag. If decision-gate (V5) emitted adversarial questions, answer them specifically — they're generated from the diff, not boilerplate.
-3. **[A] YOU MUST stop at trust < 0.2.** Surface to the developer: "Hornet flagged this as critical. Here's what I changed and what could go wrong." Do not resume until acknowledged.
+3. **[A] YOU MUST stop at trust < 0.2.** Surface to the developer: "Crow flagged this as critical. Here's what I changed and what could go wrong." Do not resume until acknowledged.
 4. **[A] Respect IG ordering.** `IG(trust) = -p log p - (1-p) log(1-p)` peaks at trust = 0.5 — uncertain changes get reviewed first, not decided ones. When surfacing a review queue, lead with the riskiest (lowest trust), not the newest.
 5. **[A] ESCALATE on override.** If the developer waives a flag, note it honestly. V6 Exponential Strategy Averaging adjusts the prior for similar future changes based on real overrides; silent dismissals poison the EMA.
 6. **[A] Restore before resume.** After compaction, read `plugins/session-memory/state/session-summary.md` and brief: "Last session: N changes, M low-trust flagged, K advisories." Then resume.
@@ -78,5 +78,5 @@ All 4 agents documented in `./plugins/*/agents/*.md` with explicit output contra
 - **Queue reordering.** Presenting the review queue in your own ordering (most recent, smallest, etc). IG ordering is the product; overriding it defeats the point.
 - **Test-assertion deletion.** Removing `expect`/`assert` calls to make tests pass. V1 classifies this as `test_change` with punitive likelihood; trust collapses below 0.2 fast.
 - **Silent override.** Waiving a low-trust flag without surfacing it. V6 adapts priors from real decisions; unlogged overrides poison learning.
-- **Re-read `changes.jsonl` every turn.** It's append-only; read once per session or when explicitly asked for fresh state. Repeated reads waste context (and trigger Allay's A5 duplicate block if co-installed).
+- **Re-read `changes.jsonl` every turn.** It's append-only; read once per session or when explicitly asked for fresh state. Repeated reads waste context (and trigger Fae's A5 duplicate block if co-installed).
 - **State-file mutation.** Editing `trust.json`, `changes.jsonl`, or `session-graph.json` by hand to silence a flag. Breaks V2's posterior and V6's EMA.

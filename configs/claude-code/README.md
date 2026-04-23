@@ -1,20 +1,20 @@
 # Claude Code Configuration
 
-This directory contains example Claude Code configuration snippets for use with Hornet.
+This directory contains example Claude Code configuration snippets for use with Crow.
 
 ## Installing Plugins
 
-After cloning the Hornet repo, add plugins to Claude Code:
+After cloning the Crow repo, add plugins to Claude Code:
 
 ```bash
 # Add the marketplace (recommended)
-/plugin marketplace add /path/to/hornet
+/plugin marketplace add /path/to/raven
 
 # Or add individual plugins
-/plugin add /path/to/hornet/plugins/change-tracker
-/plugin add /path/to/hornet/plugins/trust-scorer
-/plugin add /path/to/hornet/plugins/decision-gate
-/plugin add /path/to/hornet/plugins/session-memory
+/plugin add /path/to/raven/plugins/change-tracker
+/plugin add /path/to/raven/plugins/trust-scorer
+/plugin add /path/to/raven/plugins/decision-gate
+/plugin add /path/to/raven/plugins/session-memory
 ```
 
 ## Recommended Install Order

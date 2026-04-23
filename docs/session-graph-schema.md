@@ -23,9 +23,9 @@ Path: `plugins/session-memory/state/session-graph.json`
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `high` | integer | Count of files with trust score ≥ `HORNET_TRUST_HIGH` (default 0.8) |
-| `low` | integer | Count of files with trust score < `HORNET_TRUST_LOW` (default 0.4) |
-| `critical` | integer | Count of files with trust score < `HORNET_TRUST_CRITICAL` (default 0.2) |
+| `high` | integer | Count of files with trust score ≥ `RAVEN_TRUST_HIGH` (default 0.8) |
+| `low` | integer | Count of files with trust score < `RAVEN_TRUST_LOW` (default 0.4) |
+| `critical` | integer | Count of files with trust score < `RAVEN_TRUST_CRITICAL` (default 0.2) |
 
 ---
 

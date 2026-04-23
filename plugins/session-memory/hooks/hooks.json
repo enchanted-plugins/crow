@@ -1,5 +1,5 @@
 {
-  "description": "Hornet session-memory: builds continuity graph and persists learnings before compaction",
+  "description": "Crow session-memory: builds continuity graph and persists learnings before compaction",
   "hooks": {
     "PreCompact": [
       {

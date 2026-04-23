@@ -1,5 +1,5 @@
 {
-  "name": "hornet-trust-scorer",
+  "name": "raven-trust-scorer",
   "description": "Bayesian trust scoring of each change with prior-based confidence and posterior updates.",
   "version": "1.0.0",
   "author": {

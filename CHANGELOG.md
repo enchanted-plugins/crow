@@ -1,10 +1,12 @@
 # Changelog
 
-All notable changes to `hornet` are documented in this file.
+All notable changes to `crow` are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.0.0] — rename: crow identity, standardized origin format
 
 ### Added
 - Tier-1 governance docs: `SECURITY.md`, `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`, `THREAT_MODEL.md`.
@@ -23,5 +25,5 @@ The current shipped release. See [README.md](README.md) for the complete feature
 - Session-memory hook: continuity graph persists across compaction boundaries.
 - Attacker-input awareness: trust-gaming surfaces enumerated in [THREAT_MODEL.md](THREAT_MODEL.md).
 
-[Unreleased]: https://github.com/enchanted-plugins/hornet/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/enchanted-plugins/hornet/releases/tag/v1.0.0
+[Unreleased]: https://github.com/enchanted-plugins/crow/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/enchanted-plugins/crow/releases/tag/v1.0.0

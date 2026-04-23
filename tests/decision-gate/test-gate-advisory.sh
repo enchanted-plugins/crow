@@ -12,8 +12,8 @@ echo '{"role":"user","content":"test"}' > "$MOCK_TRANSCRIPT"
 SESSION_HASH=$(md5sum "$MOCK_TRANSCRIPT" 2>/dev/null | cut -c1-8 || echo "test")
 
 # Clean state
-rm -f "/tmp/hornet-gate-cooldown-${SESSION_HASH}"
-rm -f "/tmp/hornet-changes-${SESSION_HASH}.jsonl"
+rm -f "/tmp/raven-gate-cooldown-${SESSION_HASH}"
+rm -f "/tmp/raven-changes-${SESSION_HASH}.jsonl"
 rm -f "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl"
 rm -rf "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl.lock"
 
@@ -31,8 +31,8 @@ STDERR_OUT=""
 STDERR_OUT=$(printf "%s" "$INPUT" | CLAUDE_PLUGIN_ROOT="${REPO_ROOT}/plugins/decision-gate" bash "$HOOK" 2>&1 >/dev/null || true)
 
 # Verify advisory message appeared
-if [[ "$STDERR_OUT" != *"[Hornet]"* ]]; then
-  echo "FAIL: Expected '[Hornet]' in stderr, got: $STDERR_OUT"
+if [[ "$STDERR_OUT" != *"[Crow]"* ]]; then
+  echo "FAIL: Expected '[Crow]' in stderr, got: $STDERR_OUT"
   rm -f "$MOCK_TRANSCRIPT" "${TRUST_DIR}/trust.json"
   exit 1
 fi
@@ -53,8 +53,8 @@ fi
 
 # Cleanup
 rm -f "$MOCK_TRANSCRIPT"
-rm -f "/tmp/hornet-gate-cooldown-${SESSION_HASH}"
-rm -f "/tmp/hornet-changes-${SESSION_HASH}.jsonl"
+rm -f "/tmp/raven-gate-cooldown-${SESSION_HASH}"
+rm -f "/tmp/raven-changes-${SESSION_HASH}.jsonl"
 rm -f "${TRUST_DIR}/trust.json"
 rm -f "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl"
 rm -rf "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl.lock"

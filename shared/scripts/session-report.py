@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Hornet V4 report: Formatted session dashboard.
+"""Raven V4 report: Formatted session dashboard.
 
 Reads metrics, changes, trust, and session graph from all plugin state dirs.
 Generates a box-drawing formatted text report.
@@ -105,7 +105,7 @@ def generate_report(plugins_dir):
     # Build report
     lines = [
         "",
-        "  HORNET SESSION REPORT",
+        "  RAVEN SESSION REPORT",
         "",
         f"  Trust:    avg {avg_trust:.2f} | {high} high, {medium} medium, {low} low, {critical} critical",
         f"  Changes:  {changes_tracked} tracked | {trust_scored} scored | {reviews_issued} reviewed",

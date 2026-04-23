@@ -1,11 +1,11 @@
 ---
-name: hornet:trust
+name: raven:trust
 description: >
   Show trust scores for all tracked files. Highlights low-trust
   and critical-trust files. Shows Bayesian parameters.
 ---
 
-When the user runs `/hornet:trust`, display the current trust state.
+When the user runs `/raven:trust`, display the current trust state.
 
 ## Data Source
 

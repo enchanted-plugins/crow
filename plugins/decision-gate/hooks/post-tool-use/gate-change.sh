@@ -28,7 +28,7 @@ source "${SHARED_DIR}/metrics.sh"
 source "${SHARED_DIR}/compat.sh"
 
 # ── Read hook input from stdin (capped at 1MB) ──
-HOOK_INPUT=$(hornet_read_stdin 1048576)
+HOOK_INPUT=$(raven_read_stdin 1048576)
 
 if ! validate_json "$HOOK_INPUT"; then
   exit 0
@@ -48,14 +48,14 @@ DECODED=$(printf "%s" "$FILE_PATH" | sed -e 's/%2[eE]/./g' -e 's/%2[fF]/\//g' -e
 if [[ "$DECODED" == *".."* ]]; then exit 0; fi
 
 # ── Session hash ──
-SESSION_HASH=$(hornet_md5_file "${HOOK_TRANSCRIPT_PATH}" || echo "fallback-$$")
+SESSION_HASH=$(raven_md5_file "${HOOK_TRANSCRIPT_PATH}" || echo "fallback-$$")
 
 # ── Cooldown check ──
-COOLDOWN_FILE="${HORNET_CACHE_PREFIX}gate-cooldown-${SESSION_HASH}"
-GATE_TURN_FILE="${HORNET_CACHE_PREFIX}gate-turn-${SESSION_HASH}"
+COOLDOWN_FILE="${RAVEN_CACHE_PREFIX}gate-cooldown-${SESSION_HASH}"
+GATE_TURN_FILE="${RAVEN_CACHE_PREFIX}gate-turn-${SESSION_HASH}"
 
 # Determine current turn from changes cache
-CHANGES_CACHE="${HORNET_CACHE_PREFIX}changes-${SESSION_HASH}.jsonl"
+CHANGES_CACHE="${RAVEN_CACHE_PREFIX}changes-${SESSION_HASH}.jsonl"
 CURRENT_TURN=0
 if [[ -f "$CHANGES_CACHE" ]]; then
   CURRENT_TURN=$(wc -l < "$CHANGES_CACHE" 2>/dev/null | tr -d '[:space:]')
@@ -68,7 +68,7 @@ if [[ -f "$COOLDOWN_FILE" ]]; then
   LAST_ADVISORY_TURN=${LAST_ADVISORY_TURN:-0}
 fi
 
-if [[ "$LAST_ADVISORY_TURN" -gt 0 ]] && [[ $((CURRENT_TURN - LAST_ADVISORY_TURN)) -lt "$HORNET_REVIEW_COOLDOWN_TURNS" ]]; then
+if [[ "$LAST_ADVISORY_TURN" -gt 0 ]] && [[ $((CURRENT_TURN - LAST_ADVISORY_TURN)) -lt "$RAVEN_REVIEW_COOLDOWN_TURNS" ]]; then
   exit 0
 fi
 
@@ -88,7 +88,7 @@ if [[ -f "$TRUST_FILE" ]] && jq empty "$TRUST_FILE" >/dev/null 2>&1; then
 fi
 
 # ── Check if trust is high enough to skip review ──
-IS_HIGH=$(jq -n --argjson s "$TRUST_SCORE" --argjson t "$HORNET_TRUST_HIGH" \
+IS_HIGH=$(jq -n --argjson s "$TRUST_SCORE" --argjson t "$RAVEN_TRUST_HIGH" \
   'if $s >= $t then 1 else 0 end' 2>/dev/null || echo "0")
 
 if [[ "$IS_HIGH" == "1" ]]; then
@@ -104,29 +104,29 @@ TRUST_BUCKET=$(jq -n --argjson s "$TRUST_SCORE" \
 # Entropy lookup
 IG="1.00"
 case "$TRUST_BUCKET" in
-  5)  IG="$HORNET_IG_TABLE_05" ;;
-  10) IG="$HORNET_IG_TABLE_10" ;;
-  15) IG="$HORNET_IG_TABLE_15" ;;
-  20) IG="$HORNET_IG_TABLE_20" ;;
-  25) IG="$HORNET_IG_TABLE_25" ;;
-  30) IG="$HORNET_IG_TABLE_30" ;;
-  35) IG="$HORNET_IG_TABLE_35" ;;
-  40) IG="$HORNET_IG_TABLE_40" ;;
-  45) IG="$HORNET_IG_TABLE_45" ;;
-  50) IG="$HORNET_IG_TABLE_50" ;;
-  55) IG="$HORNET_IG_TABLE_55" ;;
-  60) IG="$HORNET_IG_TABLE_60" ;;
-  65) IG="$HORNET_IG_TABLE_65" ;;
-  70) IG="$HORNET_IG_TABLE_70" ;;
-  75) IG="$HORNET_IG_TABLE_75" ;;
-  80) IG="$HORNET_IG_TABLE_80" ;;
-  85) IG="$HORNET_IG_TABLE_85" ;;
-  90) IG="$HORNET_IG_TABLE_90" ;;
-  95) IG="$HORNET_IG_TABLE_95" ;;
+  5)  IG="$RAVEN_IG_TABLE_05" ;;
+  10) IG="$RAVEN_IG_TABLE_10" ;;
+  15) IG="$RAVEN_IG_TABLE_15" ;;
+  20) IG="$RAVEN_IG_TABLE_20" ;;
+  25) IG="$RAVEN_IG_TABLE_25" ;;
+  30) IG="$RAVEN_IG_TABLE_30" ;;
+  35) IG="$RAVEN_IG_TABLE_35" ;;
+  40) IG="$RAVEN_IG_TABLE_40" ;;
+  45) IG="$RAVEN_IG_TABLE_45" ;;
+  50) IG="$RAVEN_IG_TABLE_50" ;;
+  55) IG="$RAVEN_IG_TABLE_55" ;;
+  60) IG="$RAVEN_IG_TABLE_60" ;;
+  65) IG="$RAVEN_IG_TABLE_65" ;;
+  70) IG="$RAVEN_IG_TABLE_70" ;;
+  75) IG="$RAVEN_IG_TABLE_75" ;;
+  80) IG="$RAVEN_IG_TABLE_80" ;;
+  85) IG="$RAVEN_IG_TABLE_85" ;;
+  90) IG="$RAVEN_IG_TABLE_90" ;;
+  95) IG="$RAVEN_IG_TABLE_95" ;;
 esac
 
 # ── V5: Adversarial Self-Review (for low-trust changes) ──
-IS_LOW=$(jq -n --argjson s "$TRUST_SCORE" --argjson t "$HORNET_TRUST_LOW" \
+IS_LOW=$(jq -n --argjson s "$TRUST_SCORE" --argjson t "$RAVEN_TRUST_LOW" \
   'if $s < $t then 1 else 0 end' 2>/dev/null || echo "0")
 
 QUESTIONS=""
@@ -167,10 +167,10 @@ DISPLAY_SCORE=$(jq -n --argjson s "$TRUST_SCORE" '$s * 100 | floor / 100' 2>/dev
 SHORT_FILE=$(basename "$FILE_PATH" 2>/dev/null || echo "$FILE_PATH")
 
 if [[ -n "$QUESTIONS" ]]; then
-  printf "[Hornet] REVIEW BEFORE WRITING: %s (trust: %s)\n  %s\n  Ask yourself: %s" \
+  printf "[Crow] REVIEW BEFORE WRITING: %s (trust: %s)\n  %s\n  Ask yourself: %s" \
     "$SHORT_FILE" "$DISPLAY_SCORE" "$CHANGE_TYPE" "$QUESTIONS" >&2
 else
-  printf "[Hornet] Review: %s (trust: %s, %s)" \
+  printf "[Crow] Review: %s (trust: %s, %s)" \
     "$SHORT_FILE" "$DISPLAY_SCORE" "$CHANGE_TYPE" >&2
 fi
 

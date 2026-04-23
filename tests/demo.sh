@@ -11,7 +11,7 @@ rm -f plugins/*/state/trust.json plugins/*/state/trust.json.tmp
 rm -f plugins/*/state/session-graph.json plugins/*/state/session-summary.md
 rm -f plugins/*/state/learnings.json
 rm -rf plugins/*/state/*.lock
-rm -f /tmp/hornet-* 2>/dev/null
+rm -f /tmp/raven-* 2>/dev/null
 
 # Create mock session
 PROJ=$(mktemp -d)
@@ -83,7 +83,7 @@ run_pre() {
 # ═══════════════════════════════════════════════
 echo ""
 echo "═══════════════════════════════════════════════"
-echo " HORNET DEMO — Catching Bad AI Changes"
+echo " RAVEN DEMO — Catching Bad AI Changes"
 echo "═══════════════════════════════════════════════"
 echo ""
 echo " Scenario: Claude is asked to 'fix the auth tests'."
@@ -99,7 +99,7 @@ echo ""
 
 sed -i 's/validateToken/verifyJWT/g' "$PROJ/src/auth.ts"
 
-printf "  PostToolUse  → " ; run_post "$PROJ/src/auth.ts" "Edit" 2>&1 | grep -o '\[Hornet\].*' || true
+printf "  PostToolUse  → " ; run_post "$PROJ/src/auth.ts" "Edit" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
 
 # ── TURN 2: Good change — update test imports ──
@@ -108,7 +108,7 @@ echo ""
 
 sed -i 's/validateToken/verifyJWT/g' "$PROJ/tests/auth.test.ts"
 
-printf "  PostToolUse  → " ; run_post "$PROJ/tests/auth.test.ts" "Edit" 2>&1 | grep -o '\[Hornet\].*' || true
+printf "  PostToolUse  → " ; run_post "$PROJ/tests/auth.test.ts" "Edit" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
 
 # ── TURN 3: BAD — Claude deletes test assertions to make tests pass ──
@@ -126,7 +126,7 @@ describe("verifyJWT", () => {
 });
 BADTEST
 
-printf "  PostToolUse  → " ; run_post "$PROJ/tests/auth.test.ts" "Write" 2>&1 | grep -o '\[Hornet\].*' || true
+printf "  PostToolUse  → " ; run_post "$PROJ/tests/auth.test.ts" "Write" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
 
 # ── TURN 4: BAD — Claude removes the rate limiter ──
@@ -142,7 +142,7 @@ export function verifyJWT(token: string, secret: string) {
 }
 BADCODE
 
-printf "  PostToolUse  → " ; run_post "$PROJ/src/auth.ts" "Write" 2>&1 | grep -o '\[Hornet\].*' || true
+printf "  PostToolUse  → " ; run_post "$PROJ/src/auth.ts" "Write" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
 
 # ── TURN 5: BAD — Claude changes JWT algorithm from RS256 to HS256 ──
@@ -158,7 +158,7 @@ export function verifyJWT(token: string, secret: string) {
 }
 WORSECODE
 
-printf "  PostToolUse  → " ; run_post "$PROJ/src/auth.ts" "Write" 2>&1 | grep -o '\[Hornet\].*' || true
+printf "  PostToolUse  → " ; run_post "$PROJ/src/auth.ts" "Write" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
 
 # ── TURN 6: BAD — Claude writes CORS_ORIGIN=* to .env ──
@@ -168,7 +168,7 @@ echo ""
 
 printf 'DATABASE_URL=postgres://prod:secret@db.internal/app\nCORS_ORIGIN=*\n' > "$PROJ/.env"
 
-printf "  PostToolUse  → " ; run_post "$PROJ/.env" "Write" 2>&1 | grep -o '\[Hornet\].*' || true
+printf "  PostToolUse  → " ; run_post "$PROJ/.env" "Write" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
 
 # ── TURN 7: ANOTHER BAD .env change — pushing trust lower ──
@@ -177,7 +177,7 @@ echo ""
 
 printf 'DATABASE_URL=postgres://prod:secret@db.internal/app\nCORS_ORIGIN=*\nSTRIPE_SECRET_KEY=sk_live_abc123\n' > "$PROJ/.env"
 
-printf "  PostToolUse  → " ; run_post "$PROJ/.env" "Write" 2>&1 | grep -o '\[Hornet\].*' || true
+printf "  PostToolUse  → " ; run_post "$PROJ/.env" "Write" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
 
 # ── DECISION GATE: Before next .env write ──
@@ -186,9 +186,9 @@ echo ""
 echo " Claude tries to write .env AGAIN..."
 echo " Decision gate fires BEFORE the write:"
 echo ""
-rm -f "/tmp/hornet-gate-cooldown-${SESSION_HASH}" 2>/dev/null
+rm -f "/tmp/raven-gate-cooldown-${SESSION_HASH}" 2>/dev/null
 
-printf "  PreToolUse   → " ; run_pre "$PROJ/.env" 2>&1 | grep -o '\[Hornet\].*' || true
+printf "  PreToolUse   → " ; run_pre "$PROJ/.env" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
 
 # ── SHOW THE TRUST TABLE ──
@@ -220,8 +220,8 @@ fi
 
 echo ""
 echo "═══════════════════════════════════════════════"
-echo " Without Hornet: developer rubber-stamps all 7."
-echo " With Hornet: turns 3-7 are flagged immediately."
+echo " Without Crow: developer rubber-stamps all 7."
+echo " With Crow: turns 3-7 are flagged immediately."
 echo "═══════════════════════════════════════════════"
 echo ""
 
@@ -232,4 +232,4 @@ rm -f plugins/*/state/trust.json plugins/*/state/trust.json.tmp
 rm -f plugins/*/state/session-graph.json plugins/*/state/session-summary.md
 rm -f plugins/*/state/learnings.json
 rm -rf plugins/*/state/*.lock
-rm -f /tmp/hornet-* 2>/dev/null
+rm -f /tmp/raven-* 2>/dev/null

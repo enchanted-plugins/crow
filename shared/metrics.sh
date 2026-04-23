@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Hornet shared metrics — JSONL append with atomic mkdir locks + 10MB rotation
+# Crow shared metrics — JSONL append with atomic mkdir locks + 10MB rotation
 
 # Source constants if not already loaded
-if [[ -z "${HORNET_LOCK_SUFFIX:-}" ]]; then
+if [[ -z "${RAVEN_LOCK_SUFFIX:-}" ]]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   # shellcheck source=constants.sh
   source "${SCRIPT_DIR}/constants.sh"
@@ -26,8 +26,8 @@ release_lock() {
 log_metric() {
   local file="${1:-state/metrics.jsonl}"
   local payload="$2"
-  local lock_dir="${file}${HORNET_LOCK_SUFFIX}"
-  local max_size="${HORNET_MAX_METRICS_BYTES:-10485760}"
+  local lock_dir="${file}${RAVEN_LOCK_SUFFIX}"
+  local max_size="${RAVEN_MAX_METRICS_BYTES:-10485760}"
 
   # Validate JSON before writing
   if ! printf "%s" "$payload" | jq empty >/dev/null 2>&1; then

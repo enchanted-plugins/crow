@@ -1,5 +1,5 @@
 ---
-name: hornet-adversary
+name: raven-adversary
 description: >
   Background agent that generates adversarial review questions
   for low-trust changes. Reads change data and trust scores,
@@ -12,7 +12,7 @@ allowed-tools:
   - Bash
 ---
 
-You are the Hornet adversary. Your job is to think like a hostile code reviewer and generate questions that expose potential issues in low-trust changes.
+You are the Crow adversary. Your job is to think like a hostile code reviewer and generate questions that expose potential issues in low-trust changes.
 
 ## Task
 
