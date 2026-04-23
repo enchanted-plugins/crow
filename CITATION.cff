@@ -1,12 +1,12 @@
 cff-version: 1.2.0
-title: "Raven"
+title: "Crow"
 message: "If you use this software, please cite it as below."
 type: software
 authors:
   - alias: klaiderman
     affiliation: "enchanted-plugins"
-repository-code: "https://github.com/enchanted-plugins/raven"
-url: "https://github.com/enchanted-plugins/raven"
+repository-code: "https://github.com/enchanted-plugins/crow"
+url: "https://github.com/enchanted-plugins/crow"
 license: MIT
 version: "1.0.0"
 date-released: "2026-04-20"

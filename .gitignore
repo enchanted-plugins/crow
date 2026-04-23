@@ -1,4 +1,4 @@
-# Raven state files (runtime-generated)
+# Crow state files (runtime-generated)
 plugins/*/state/changes.jsonl
 plugins/*/state/metrics.jsonl
 plugins/*/state/trust.json
