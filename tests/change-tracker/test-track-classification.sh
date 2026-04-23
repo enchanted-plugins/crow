@@ -10,7 +10,7 @@ MOCK_TRANSCRIPT=$(mktemp)
 echo '{"role":"user","content":"test"}' > "$MOCK_TRANSCRIPT"
 
 SESSION_HASH=$(md5sum "$MOCK_TRANSCRIPT" 2>/dev/null | cut -c1-8 || echo "test")
-CACHE_FILE="/tmp/raven-changes-${SESSION_HASH}.jsonl"
+CACHE_FILE="/tmp/crow-changes-${SESSION_HASH}.jsonl"
 
 # Clean state
 rm -f "$CACHE_FILE"

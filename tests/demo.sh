@@ -11,7 +11,7 @@ rm -f plugins/*/state/trust.json plugins/*/state/trust.json.tmp
 rm -f plugins/*/state/session-graph.json plugins/*/state/session-summary.md
 rm -f plugins/*/state/learnings.json
 rm -rf plugins/*/state/*.lock
-rm -f /tmp/raven-* 2>/dev/null
+rm -f /tmp/crow-* 2>/dev/null
 
 # Create mock session
 PROJ=$(mktemp -d)
@@ -186,7 +186,7 @@ echo ""
 echo " Claude tries to write .env AGAIN..."
 echo " Decision gate fires BEFORE the write:"
 echo ""
-rm -f "/tmp/raven-gate-cooldown-${SESSION_HASH}" 2>/dev/null
+rm -f "/tmp/crow-gate-cooldown-${SESSION_HASH}" 2>/dev/null
 
 printf "  PreToolUse   → " ; run_pre "$PROJ/.env" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
@@ -232,4 +232,4 @@ rm -f plugins/*/state/trust.json plugins/*/state/trust.json.tmp
 rm -f plugins/*/state/session-graph.json plugins/*/state/session-summary.md
 rm -f plugins/*/state/learnings.json
 rm -rf plugins/*/state/*.lock
-rm -f /tmp/raven-* 2>/dev/null
+rm -f /tmp/crow-* 2>/dev/null

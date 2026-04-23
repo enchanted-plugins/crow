@@ -1,5 +1,5 @@
 {
-  "name": "raven",
+  "name": "crow",
   "owner": {
     "name": "enchanted-plugins"
   },
@@ -15,25 +15,25 @@
       "category": "meta"
     },
     {
-      "name": "raven-change-tracker",
+      "name": "crow-change-tracker",
       "source": "./plugins/change-tracker",
       "description": "Tracks every file change with semantic diff compression and change classification.",
       "category": "development"
     },
     {
-      "name": "raven-trust-scorer",
+      "name": "crow-trust-scorer",
       "source": "./plugins/trust-scorer",
       "description": "Bayesian trust scoring of each change with prior-based confidence and posterior updates.",
       "category": "development"
     },
     {
-      "name": "raven-decision-gate",
+      "name": "crow-decision-gate",
       "source": "./plugins/decision-gate",
       "description": "Per-change review with information-gain ordering and adversarial self-review for low-trust changes.",
       "category": "development"
     },
     {
-      "name": "raven-session-memory",
+      "name": "crow-session-memory",
       "source": "./plugins/session-memory",
       "description": "Session continuity graph for compaction survival. Preserves decision history and learned preferences.",
       "category": "development"

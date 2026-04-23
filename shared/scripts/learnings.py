@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Raven V6: Exponential Strategy Averaging — cross-session EMA accumulation.
+"""Crow V6: Exponential Strategy Averaging — cross-session EMA accumulation.
 
 Accumulates developer preferences across sessions using exponential
 moving averages of per-type trust rates and review frequencies.

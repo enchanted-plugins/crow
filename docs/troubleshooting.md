@@ -36,16 +36,16 @@ Most "it doesn't work" reports resolve on this list alone.
 
 ### "Plugin not found" after marketplace install
 
-**Symptom:** `/plugin install full@raven` succeeds but `/plugin list` doesn't show the sub-plugins.
+**Symptom:** `/plugin install full@crow` succeeds but `/plugin list` doesn't show the sub-plugins.
 
 **Cause:** Stale marketplace cache or a partial clone.
 
 **Fix:**
 
 ```
-/plugin marketplace remove enchanted-plugins/raven
-/plugin marketplace add enchanted-plugins/raven
-/plugin install full@raven
+/plugin marketplace remove enchanted-plugins/crow
+/plugin marketplace add enchanted-plugins/crow
+/plugin install full@crow
 ```
 
 ### Renderer toolchain fails
@@ -93,8 +93,8 @@ Most "it doesn't work" reports resolve on this list alone.
 
 ## When to file a bug vs. ask in Discussions
 
-- **Bug:** reproducible, unexpected behavior. File in [Issues](https://github.com/enchanted-plugins/raven/issues) with the bug template.
-- **Question or "is this expected?":** open a thread in [Discussions](https://github.com/enchanted-plugins/raven/discussions).
+- **Bug:** reproducible, unexpected behavior. File in [Issues](https://github.com/enchanted-plugins/crow/issues) with the bug template.
+- **Question or "is this expected?":** open a thread in [Discussions](https://github.com/enchanted-plugins/crow/discussions).
 - **Security issue:** never file publicly. See [SECURITY.md](../SECURITY.md).
 
 ## Still stuck?
@@ -106,4 +106,4 @@ Gather these before asking:
 - `claude --version`, `/plugin list`, OS, and shell.
 - Any non-default `settings.json` hook or permission entries relevant to the failure.
 
-Then: [Discussions Q&A](https://github.com/enchanted-plugins/raven/discussions/categories/q-a).
+Then: [Discussions Q&A](https://github.com/enchanted-plugins/crow/discussions/categories/q-a).

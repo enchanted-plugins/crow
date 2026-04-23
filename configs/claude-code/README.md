@@ -8,13 +8,13 @@ After cloning the Crow repo, add plugins to Claude Code:
 
 ```bash
 # Add the marketplace (recommended)
-/plugin marketplace add /path/to/raven
+/plugin marketplace add /path/to/crow
 
 # Or add individual plugins
-/plugin add /path/to/raven/plugins/change-tracker
-/plugin add /path/to/raven/plugins/trust-scorer
-/plugin add /path/to/raven/plugins/decision-gate
-/plugin add /path/to/raven/plugins/session-memory
+/plugin add /path/to/crow/plugins/change-tracker
+/plugin add /path/to/crow/plugins/trust-scorer
+/plugin add /path/to/crow/plugins/decision-gate
+/plugin add /path/to/crow/plugins/session-memory
 ```
 
 ## Recommended Install Order

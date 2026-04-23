@@ -45,7 +45,7 @@ RAVEN_REVIEW_COOLDOWN_TURNS=3
 RAVEN_LOCK_SUFFIX=".lock"
 
 # Session cache prefix
-RAVEN_CACHE_PREFIX="/tmp/raven-"
+RAVEN_CACHE_PREFIX="/tmp/crow-"
 
 # Information-gain entropy lookup table (trust → binary entropy)
 # Precomputed: H(p) = -p*log2(p) - (1-p)*log2(1-p)

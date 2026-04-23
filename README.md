@@ -40,14 +40,14 @@ Not for:
 
 - [The Problem](#the-problem)
 - [How It Works](#how-it-works)
-- [What Makes Crow Different](#what-makes-raven-different)
+- [What Makes Crow Different](#what-makes-crow-different)
 - [The Full Lifecycle](#the-full-lifecycle)
 - [Install](#install)
 - [Quickstart](#quickstart)
 - [4 Plugins, 4 Agents, 6 Algorithms](#4-plugins-4-agents-6-algorithms)
 - [What You Get Per Session](#what-you-get-per-session)
 - [Roadmap](#roadmap)
-- [The Science Behind Crow](#the-science-behind-raven)
+- [The Science Behind Crow](#the-science-behind-crow)
 - [Commands](#commands)
 - [How Trust Scoring Works](#how-trust-scoring-works)
 - [How Information-Gain Ordering Works](#how-information-gain-ordering-works)
@@ -132,18 +132,18 @@ Crow ships as 4 plugins that feed each other (change-tracker → trust-scorer �
 **In Claude Code** (recommended):
 
 ```
-/plugin marketplace add enchanted-plugins/raven
-/plugin install full@raven
+/plugin marketplace add enchanted-plugins/crow
+/plugin install full@crow
 ```
 
 Claude Code resolves the dependency list and installs all 4 plugins. Verify with `/plugin list`.
 
-**Want to cherry-pick?** Individual plugins are still installable by name — e.g. `/plugin install raven-trust-scorer@raven` if you only need scoring. The pipeline is designed to work end-to-end, though, so `full@raven` is the path we recommend.
+**Want to cherry-pick?** Individual plugins are still installable by name — e.g. `/plugin install crow-trust-scorer@crow` if you only need scoring. The pipeline is designed to work end-to-end, though, so `full@crow` is the path we recommend.
 
 **Via shell** (also installs `shared/*.sh` and `shared/scripts/*.py` locally so hooks work offline):
 
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/enchanted-plugins/raven/main/install.sh)
+bash <(curl -s https://raw.githubusercontent.com/enchanted-plugins/crow/main/install.sh)
 ```
 
 ## Quickstart
@@ -151,21 +151,21 @@ bash <(curl -s https://raw.githubusercontent.com/enchanted-plugins/raven/main/in
 Install, let Claude edit something, read the trust score. Sixty seconds:
 
 ```
-/plugin install full@raven
+/plugin install full@crow
 # ...let Claude make any Write / Edit...
-/raven:trust
+/crow:trust
 ```
 
-Expected: `/raven:trust` prints per-file rows sorted riskiest-first — trust score, band (HIGH / MEDIUM / LOW), and the specific engine signals (H1 semantic delta, H2 Bayesian posterior, H3 info-gain, H4 continuity) driving the verdict. See [docs/getting-started.md](docs/getting-started.md) for the full guided first run and [THREAT_MODEL.md](THREAT_MODEL.md) for the attacker-input model Crow is hardened against.
+Expected: `/crow:trust` prints per-file rows sorted riskiest-first — trust score, band (HIGH / MEDIUM / LOW), and the specific engine signals (H1 semantic delta, H2 Bayesian posterior, H3 info-gain, H4 continuity) driving the verdict. See [docs/getting-started.md](docs/getting-started.md) for the full guided first run and [THREAT_MODEL.md](THREAT_MODEL.md) for the attacker-input model Crow is hardened against.
 
 ## 4 Plugins, 4 Agents, 6 Algorithms
 
 | Plugin | Hook | Command | What |
 |--------|------|---------|------|
-| change-tracker | PostToolUse | `/raven:changes` | Semantic diff compression + classification |
-| trust-scorer | PostToolUse | `/raven:trust` | Bayesian trust scoring + alerts |
-| decision-gate | PostToolUse | `/raven:review` | IG-ordered review + adversarial questions |
-| session-memory | PreCompact | `/raven:session` | Continuity graph + Exponential Strategy Averaging |
+| change-tracker | PostToolUse | `/crow:changes` | Semantic diff compression + classification |
+| trust-scorer | PostToolUse | `/crow:trust` | Bayesian trust scoring + alerts |
+| decision-gate | PostToolUse | `/crow:review` | IG-ordered review + adversarial questions |
+| session-memory | PreCompact | `/crow:session` | Continuity graph + Exponential Strategy Averaging |
 
 | Agent | Model | Plugin | What |
 |-------|-------|--------|------|
@@ -176,12 +176,12 @@ Expected: `/raven:trust` prints per-file rows sorted riskiest-first — trust sc
 
 ## What You Get Per Session
 
-Three hook events fan out into four color-coded journals — one per sub-plugin — and converge on the enchanted-mcp bus and the `/raven:*` query surface. Color maps engines to journals: blue = change-tracker (V1 semantic-diff) · purple = trust-scorer (V2 Bayesian + V6 Exponential Strategy Averaging) · red = decision-gate (V3 info-gain) · yellow = session-memory (V4 continuity graph).
+Three hook events fan out into four color-coded journals — one per sub-plugin — and converge on the enchanted-mcp bus and the `/crow:*` query surface. Color maps engines to journals: blue = change-tracker (V1 semantic-diff) · purple = trust-scorer (V2 Bayesian + V6 Exponential Strategy Averaging) · red = decision-gate (V3 info-gain) · yellow = session-memory (V4 continuity graph).
 
 <p align="center">
   <a href="docs/assets/state-flow.mmd" title="View state-flow diagram source (Mermaid)">
     <img src="docs/assets/state-flow.svg"
-         alt="Crow per-session state flow: three hooks (PreToolUse, PostToolUse Write|Edit|MultiEdit, PreCompact) feed four color-coded journals (change-tracker changes+metrics, trust-scorer trust+learnings+metrics, decision-gate metrics, session-memory graph+summary+metrics) converging on the enchanted-mcp bus and the /raven:* query surface"
+         alt="Crow per-session state flow: three hooks (PreToolUse, PostToolUse Write|Edit|MultiEdit, PreCompact) feed four color-coded journals (change-tracker changes+metrics, trust-scorer trust+learnings+metrics, decision-gate metrics, session-memory graph+summary+metrics) converging on the enchanted-mcp bus and the /crow:* query surface"
          width="100%" style="max-width:1100px;">
   </a>
 </p>
@@ -213,7 +213,7 @@ session-memory/state/
 
 ## Roadmap
 
-Tracked in [docs/ROADMAP.md](docs/ROADMAP.md) and the shared [ecosystem map](https://github.com/enchanted-plugins/wixie/blob/main/docs/ecosystem.md). For upcoming work specific to Crow, see issues tagged [roadmap](https://github.com/enchanted-plugins/raven/labels/roadmap).
+Tracked in [docs/ROADMAP.md](docs/ROADMAP.md) and the shared [ecosystem map](https://github.com/enchanted-plugins/wixie/blob/main/docs/ecosystem.md). For upcoming work specific to Crow, see issues tagged [roadmap](https://github.com/enchanted-plugins/crow/labels/roadmap).
 
 ## The Science Behind Crow
 
@@ -286,10 +286,10 @@ this developer always reviews schema changes carefully. Adapts priors accordingl
 
 | Command | Plugin | What |
 |---------|--------|------|
-| `/raven:changes` | change-tracker | All changes grouped by type and file |
-| `/raven:trust` | trust-scorer | Trust scores sorted riskiest-first |
-| `/raven:review` | decision-gate | IG-ranked review queue with adversarial questions |
-| `/raven:session` | session-memory | Full session dashboard |
+| `/crow:changes` | change-tracker | All changes grouped by type and file |
+| `/crow:trust` | trust-scorer | Trust scores sorted riskiest-first |
+| `/crow:review` | decision-gate | IG-ranked review queue with adversarial questions |
+| `/crow:session` | session-memory | Full session dashboard |
 
 ## How Trust Scoring Works
 
@@ -371,7 +371,7 @@ If you use this project in research or derivative work, please cite it:
   title = {Crow},
   author = {{Klaiderman}},
   year = {2026},
-  url = {https://github.com/enchanted-plugins/raven}
+  url = {https://github.com/enchanted-plugins/crow}
 }
 ```
 
@@ -387,6 +387,6 @@ MIT
 
 Crow is the **change-trust layer** — it scores every Write/Edit the agent makes before the change influences a commit. Upstream, Wixie's prompts produce the changes Crow observes. Downstream, Sylph consumes Crow's trust signal in its W4 reviewer routing (blame × recency × CODEOWNERS × **Crow availability**), and Lich uses Crow's trust as a gating prior before spending sandbox time on deep review.
 
-Crow does not engineer prompts (Wixie's lane), track tokens (Fae's lane), review code correctness (Lich's lane), orchestrate PR lifecycle (Sylph's lane), or scan security surfaces (Hydra's lane). It scores trust in what just happened.
+Crow does not engineer prompts (Wixie's lane), track tokens (Emu's lane), review code correctness (Lich's lane), orchestrate PR lifecycle (Sylph's lane), or scan security surfaces (Hydra's lane). It scores trust in what just happened.
 
 See [docs/ecosystem.md § Data Flow Between Plugins](docs/ecosystem.md#data-flow-between-plugins) for the full map.

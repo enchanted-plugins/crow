@@ -1,5 +1,5 @@
 ---
-name: raven-classifier
+name: crow-classifier
 description: >
   Background agent that performs deep semantic classification
   of changes when the fast bash classifier is insufficient.

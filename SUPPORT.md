@@ -6,11 +6,11 @@ Short version: **pick the right channel, and you'll get an answer faster.**
 
 | You have a… | Go to |
 |-------------|-------|
-| Security vulnerability | [Private security advisory](https://github.com/enchanted-plugins/raven/security/advisories/new) — **never** a public issue. See [SECURITY.md](SECURITY.md). |
-| Reproducible bug | [Bug report issue](https://github.com/enchanted-plugins/raven/issues/new?template=bug_report.md). Include repro steps, versions, exact error. |
-| Concrete feature proposal | [Feature request issue](https://github.com/enchanted-plugins/raven/issues/new?template=feature_request.md). Half-formed ideas → Discussions first. |
-| Usage question | [Discussions → Q&A](https://github.com/enchanted-plugins/raven/discussions/categories/q-a) |
-| Show-and-tell, idea, or discussion | [Discussions → Ideas / Show & Tell](https://github.com/enchanted-plugins/raven/discussions) |
+| Security vulnerability | [Private security advisory](https://github.com/enchanted-plugins/crow/security/advisories/new) — **never** a public issue. See [SECURITY.md](SECURITY.md). |
+| Reproducible bug | [Bug report issue](https://github.com/enchanted-plugins/crow/issues/new?template=bug_report.md). Include repro steps, versions, exact error. |
+| Concrete feature proposal | [Feature request issue](https://github.com/enchanted-plugins/crow/issues/new?template=feature_request.md). Half-formed ideas → Discussions first. |
+| Usage question | [Discussions → Q&A](https://github.com/enchanted-plugins/crow/discussions/categories/q-a) |
+| Show-and-tell, idea, or discussion | [Discussions → Ideas / Show & Tell](https://github.com/enchanted-plugins/crow/discussions) |
 | Wanted something that already exists | Read the docs list below first. |
 
 ## Before filing

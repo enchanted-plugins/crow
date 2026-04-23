@@ -21,7 +21,7 @@ Crow's job is to score the trustworthiness of Claude's edits. Everything depends
 Assume the attacker is:
 
 1. **Present in the tool-output stream.** They can inject text that Claude will read and act on — via a pulled doc, a fetched webpage, a search result, or a file they tricked Claude into reading.
-2. **Unable to modify Crow itself.** If they can edit `shared/conduct/` or `plugins/raven/`, it's game over — see Hydra's scope.
+2. **Unable to modify Crow itself.** If they can edit `shared/conduct/` or `plugins/crow/`, it's game over — see Hydra's scope.
 3. **Aware of Crow's scoring model.** The threat model is white-box: the attacker has read this document. Security-through-obscurity is not in scope.
 
 ## Attacker inputs
@@ -69,7 +69,7 @@ The ways a white-box attacker might try to manipulate the trust score, and the s
 
 **Attack.** Inject entries into Crow's own session log to poison the Bayesian prior.
 
-**Counter.** The session log is append-only under `~/.claude/raven/sessions/` and is not read from tool output. An attacker who can write to that path has already gained filesystem write outside the scope of this threat model (Hydra's territory).
+**Counter.** The session log is append-only under `~/.claude/crow/sessions/` and is not read from tool output. An attacker who can write to that path has already gained filesystem write outside the scope of this threat model (Hydra's territory).
 
 ### 6. Reviewer-fatigue attacks
 

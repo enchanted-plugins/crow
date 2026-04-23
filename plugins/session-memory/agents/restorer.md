@@ -1,5 +1,5 @@
 ---
-name: raven-restorer
+name: crow-restorer
 description: >
   After compaction, reads session-graph.json and session-summary.md,
   produces a structured context restoration for the main agent.

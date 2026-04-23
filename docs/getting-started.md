@@ -5,8 +5,8 @@ Crow watches every edit Claude makes and scores it. Semantic diff first, then Ba
 ## 1. Install (60 seconds)
 
 ```
-/plugin marketplace add enchanted-plugins/raven
-/plugin install full@raven
+/plugin marketplace add enchanted-plugins/crow
+/plugin install full@crow
 /plugin list
 ```
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Raven V4 report: Formatted session dashboard.
+"""Crow V4 report: Formatted session dashboard.
 
 Reads metrics, changes, trust, and session graph from all plugin state dirs.
 Generates a box-drawing formatted text report.

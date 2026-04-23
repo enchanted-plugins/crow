@@ -4,17 +4,17 @@ Quick answers to questions that don't yet have their own doc. For anything deepe
 
 ## What's the difference between Crow and the other siblings?
 
-Crow answers *"what just happened?"* — it watches every edit and scores trust before it influences a commit. Sibling plugins answer different questions in the same session: Wixie engineers prompts, Fae tracks token spend, Hydra scans for security surface, Sylph coordinates git workflow. All are independent installs; none require the others. See [docs/ecosystem.md](ecosystem.md) for the full map.
+Crow answers *"what just happened?"* — it watches every edit and scores trust before it influences a commit. Sibling plugins answer different questions in the same session: Wixie engineers prompts, Emu tracks token spend, Hydra scans for security surface, Sylph coordinates git workflow. All are independent installs; none require the others. See [docs/ecosystem.md](ecosystem.md) for the full map.
 
 ## Do I need the other siblings to use Crow?
 
-No. Crow is self-contained — install `full@raven` and every command works standalone. Sylph cross-references Crow's trust scores if both are installed, but Crow does not require Sylph and vice versa.
+No. Crow is self-contained — install `full@crow` and every command works standalone. Sylph cross-references Crow's trust scores if both are installed, but Crow does not require Sylph and vice versa.
 
 ## How do I report a bug vs. ask a question vs. disclose a security issue?
 
 - **Security vulnerability** — private advisory, never a public issue. See [SECURITY.md](../SECURITY.md).
 - **Reproducible bug** — a bug report issue with repro steps + exact versions.
-- **Usage question or half-formed idea** — [Discussions](https://github.com/enchanted-plugins/raven/discussions).
+- **Usage question or half-formed idea** — [Discussions](https://github.com/enchanted-plugins/crow/discussions).
 
 The [SUPPORT.md](../SUPPORT.md) page has the exact links for each.
 

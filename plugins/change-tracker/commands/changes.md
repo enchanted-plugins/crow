@@ -1,11 +1,11 @@
 ---
-name: raven:changes
+name: crow:changes
 description: >
   Show all tracked changes in this session, grouped by type and file.
   Includes semantic classification and cluster information.
 ---
 
-When the user runs `/raven:changes`, generate a change summary by reading state data.
+When the user runs `/crow:changes`, generate a change summary by reading state data.
 
 ## Data Source
 

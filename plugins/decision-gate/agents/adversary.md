@@ -1,5 +1,5 @@
 ---
-name: raven-adversary
+name: crow-adversary
 description: >
   Background agent that generates adversarial review questions
   for low-trust changes. Reads change data and trust scores,

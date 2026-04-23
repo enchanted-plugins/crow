@@ -15,7 +15,7 @@ echo '{"role":"user","content":"test"}' > "$MOCK_TRANSCRIPT"
 
 # Clean session caches
 SESSION_HASH=$(md5sum "$MOCK_TRANSCRIPT" 2>/dev/null | cut -c1-8 || echo "test")
-rm -f "/tmp/raven-changes-${SESSION_HASH}.jsonl"
+rm -f "/tmp/crow-changes-${SESSION_HASH}.jsonl"
 
 # Clean plugin state
 rm -f "${REPO_ROOT}/plugins/change-tracker/state/changes.jsonl"
@@ -40,7 +40,7 @@ if [[ $EXIT_CODE -ne 0 ]]; then
 fi
 
 # Verify session cache was created
-CACHE_FILE="/tmp/raven-changes-${SESSION_HASH}.jsonl"
+CACHE_FILE="/tmp/crow-changes-${SESSION_HASH}.jsonl"
 if [[ ! -f "$CACHE_FILE" ]]; then
   echo "FAIL: Session cache not created at $CACHE_FILE"
   rm -f "$TEST_FILE" "$MOCK_TRANSCRIPT"

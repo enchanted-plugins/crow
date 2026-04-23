@@ -1,11 +1,11 @@
 ---
-name: raven:session
+name: crow:session
 description: >
   Show the current session dashboard. Trust overview, change count,
   review decisions, and cross-session learnings.
 ---
 
-When the user runs `/raven:session`, generate a comprehensive session report.
+When the user runs `/crow:session`, generate a comprehensive session report.
 
 ## Data Sources
 

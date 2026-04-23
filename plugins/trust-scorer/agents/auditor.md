@@ -1,5 +1,5 @@
 ---
-name: raven-auditor
+name: crow-auditor
 description: >
   Background agent that generates trust audit reports.
   Reads trust.json and changes.jsonl, produces a trust

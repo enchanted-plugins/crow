@@ -12,8 +12,8 @@ echo '{"role":"user","content":"test"}' > "$MOCK_TRANSCRIPT"
 SESSION_HASH=$(md5sum "$MOCK_TRANSCRIPT" 2>/dev/null | cut -c1-8 || echo "test")
 
 # Clean state
-rm -f "/tmp/raven-gate-cooldown-${SESSION_HASH}"
-rm -f "/tmp/raven-changes-${SESSION_HASH}.jsonl"
+rm -f "/tmp/crow-gate-cooldown-${SESSION_HASH}"
+rm -f "/tmp/crow-changes-${SESSION_HASH}.jsonl"
 rm -f "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl"
 rm -rf "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl.lock"
 
@@ -39,8 +39,8 @@ fi
 
 # Cleanup
 rm -f "$MOCK_TRANSCRIPT"
-rm -f "/tmp/raven-gate-cooldown-${SESSION_HASH}"
-rm -f "/tmp/raven-changes-${SESSION_HASH}.jsonl"
+rm -f "/tmp/crow-gate-cooldown-${SESSION_HASH}"
+rm -f "/tmp/crow-changes-${SESSION_HASH}.jsonl"
 rm -f "${TRUST_DIR}/trust.json"
 rm -f "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl"
 rm -rf "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl.lock"

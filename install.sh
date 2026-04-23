@@ -3,8 +3,8 @@
 # meta-plugin pulls them all in via one dependency-resolution pass.
 set -euo pipefail
 
-REPO="https://github.com/enchanted-plugins/raven"
-RAVEN_DIR="${HOME}/.claude/plugins/raven"
+REPO="https://github.com/enchanted-plugins/crow"
+RAVEN_DIR="${HOME}/.claude/plugins/crow"
 
 step() { printf "\n\033[1;36m▸ %s\033[0m\n" "$*"; }
 ok()   { printf "  \033[32m✓\033[0m %s\n" "$*"; }
@@ -38,13 +38,13 @@ cat <<'EOF'
 
   Finish in Claude Code with TWO commands:
 
-    /plugin marketplace add enchanted-plugins/raven
-    /plugin install full@raven
+    /plugin marketplace add enchanted-plugins/crow
+    /plugin install full@crow
 
   That installs all 4 plugins via dependency resolution. To cherry-pick
-  a single plugin instead, use e.g. `/plugin install raven-trust-scorer@raven`.
+  a single plugin instead, use e.g. `/plugin install crow-trust-scorer@crow`.
 
   Verify with:   /plugin list
-  Expected:      full + 4 plugins installed under the raven marketplace.
+  Expected:      full + 4 plugins installed under the crow marketplace.
 
 EOF

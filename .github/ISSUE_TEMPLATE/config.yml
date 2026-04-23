@@ -1,10 +1,10 @@
 blank_issues_enabled: false
 contact_links:
   - name: Questions & Discussions
-    url: https://github.com/enchanted-plugins/raven/discussions
+    url: https://github.com/enchanted-plugins/crow/discussions
     about: Open-ended questions, ideas, show-and-tell, and usage help belong here — not in the issue tracker.
   - name: Security vulnerabilities
-    url: https://github.com/enchanted-plugins/raven/security/advisories/new
+    url: https://github.com/enchanted-plugins/crow/security/advisories/new
     about: Report security issues privately via GitHub Security Advisories. Do not open public issues for vulnerabilities — see SECURITY.md.
   - name: Ecosystem map
     url: https://github.com/enchanted-plugins/wixie/blob/main/docs/ecosystem.md
