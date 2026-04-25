@@ -213,7 +213,7 @@ session-memory/state/
 
 ## Roadmap
 
-Tracked in [docs/ROADMAP.md](docs/ROADMAP.md) and the shared [ecosystem map](https://github.com/enchanted-plugins/wixie/blob/main/docs/ecosystem.md). For upcoming work specific to Crow, see issues tagged [roadmap](https://github.com/enchanted-plugins/crow/labels/roadmap).
+Tracked in [docs/ROADMAP.md](docs/ROADMAP.md) and the shared [ecosystem map](docs/ecosystem.md). For upcoming work specific to Crow, see issues tagged [roadmap](https://github.com/enchanted-plugins/crow/labels/roadmap).
 
 ## The Science Behind Crow
 
