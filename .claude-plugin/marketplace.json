@@ -15,25 +15,25 @@
       "category": "meta"
     },
     {
-      "name": "crow-change-tracker",
+      "name": "change-tracker",
       "source": "./plugins/change-tracker",
       "description": "Tracks every file change with semantic diff compression and change classification.",
       "category": "development"
     },
     {
-      "name": "crow-trust-scorer",
+      "name": "trust-scorer",
       "source": "./plugins/trust-scorer",
       "description": "Bayesian trust scoring of each change with prior-based confidence and posterior updates.",
       "category": "development"
     },
     {
-      "name": "crow-decision-gate",
+      "name": "decision-gate",
       "source": "./plugins/decision-gate",
       "description": "Per-change review with information-gain ordering and adversarial self-review for low-trust changes.",
       "category": "development"
     },
     {
-      "name": "crow-session-memory",
+      "name": "session-memory",
       "source": "./plugins/session-memory",
       "description": "Session continuity graph for compaction survival. Preserves decision history and learned preferences.",
       "category": "development"
