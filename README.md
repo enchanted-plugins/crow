@@ -52,7 +52,7 @@ Not for:
 - [How Trust Scoring Works](#how-trust-scoring-works)
 - [How Information-Gain Ordering Works](#how-information-gain-ordering-works)
 - [vs Everything Else](#vs-everything-else)
-- [Agent Conduct (9 Modules)](#agent-conduct-9-modules)
+- [Agent Conduct (11 Modules)](#agent-conduct-11-modules)
 - [Architecture](#architecture)
 - [Acknowledgments](#acknowledgments)
 - [Versioning & release cadence](#versioning--release-cadence)
@@ -320,7 +320,7 @@ Review the uncertain files first. Skip the ones where trust is already decided.
 | Cross-session learning | Gauss EMA | — | — | — | — |
 | Dependencies | bash + jq | Node | Node + MCP | Python | API |
 
-## Agent Conduct (9 Modules)
+## Agent Conduct (11 Modules)
 
 Every skill inherits a reusable behavioral contract from [shared/](shared/) — loaded once into [CLAUDE.md](CLAUDE.md), applied across all plugins. This is how Claude *acts* inside Crow: deterministic, surgical, verifiable. Not a suggestion; a contract.
 
@@ -335,6 +335,8 @@ Every skill inherits a reusable behavioral contract from [shared/](shared/) — 
 | [skill-authoring.md](shared/conduct/skill-authoring.md) | SKILL.md frontmatter discipline, discovery test |
 | [hooks.md](shared/conduct/hooks.md) | Advisory-only hooks, injection over denial, fail-open |
 | [precedent.md](shared/conduct/precedent.md) | Log self-observed failures to `state/precedent-log.md`; consult before risky steps |
+| [tier-sizing.md](shared/conduct/tier-sizing.md) | Prompt verbosity scales inversely with model tier; Haiku needs mechanical steps, Opus runs on intent |
+| [web-fetch.md](shared/conduct/web-fetch.md) | External URL handling: cache, dedup, budget; WebFetch is Haiku-tier-only |
 
 ## Architecture
 
