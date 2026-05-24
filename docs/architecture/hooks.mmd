@@ -5,7 +5,7 @@ graph LR
         change_tracker_h0_trigger --> change_tracker_h0_script
     end
     subgraph decision_gate["decision-gate"]
-        decision_gate_h0_trigger["PreToolUse<br/>Write | Edit | MultiEdit"]
+        decision_gate_h0_trigger["PostToolUse<br/>Write | Edit | MultiEdit"]
         decision_gate_h0_script["gate-change.sh<br/><small>timeout: 10s</small>"]
         decision_gate_h0_trigger --> decision_gate_h0_script
     end

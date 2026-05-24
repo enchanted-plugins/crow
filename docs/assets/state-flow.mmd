@@ -18,7 +18,6 @@ flowchart TB
 
     subgraph sources["<div style='text-align:center;min-width:940px;font-family:ui-monospace,monospace;color:#8b949e;font-size:11px;letter-spacing:3px'>EVENT&nbsp;SOURCES&nbsp;&nbsp;·&nbsp;&nbsp;HOOK&nbsp;FIRES</div>"]
         direction LR
-        Pre["<b>PreToolUse</b><br/><small style='color:#6e7681'>Write · Edit · MultiEdit</small>"]
         Post["<b>PostToolUse</b><br/><small style='color:#6e7681'>Write · Edit · MultiEdit</small>"]
         Compact["<b>PreCompact</b>"]
     end
@@ -56,7 +55,7 @@ flowchart TB
     ct_ch --> ts_tr
     ts_tr --> ts_learn
     ts_tr --> ts_met
-    Pre --> dg_met
+    Post --> dg_met
     Compact --> sm_gr
     sm_gr --> sm_sum
     sm_gr --> sm_met
@@ -75,7 +74,7 @@ flowchart TB
     classDef queryNode fill:#0f1d33,stroke:#3fb950,stroke-width:1.5px,color:#3fb950,rx:14,ry:14
 
     class TitleBlock titleBlock
-    class Pre,Post,Compact sourceNode
+    class Post,Compact sourceNode
     class ct_ch,ct_met,ts_tr,ts_learn,ts_met,dg_met,sm_gr,sm_sum,sm_met journalLine
     class Bus busNode
     class Query queryNode

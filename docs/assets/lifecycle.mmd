@@ -15,9 +15,8 @@ flowchart LR
 
     A(["<b>SESSION&nbsp;START</b>"])
     B["<b>FILE&nbsp;CHANGE</b><br/><small style='color:#8b949e'>Write · Edit · MultiEdit</small>"]
-    C{"<b>PreToolUse</b><br/><small style='color:#8b949e'>decision-gate</small>"}
     D["<b>TOOL&nbsp;EXECUTES</b>"]
-    E{"<b>PostToolUse</b><br/><small style='color:#8b949e'>change-tracker · trust-scorer</small>"}
+    E{"<b>PostToolUse</b><br/><small style='color:#8b949e'>decision-gate · change-tracker · trust-scorer</small>"}
     F["<b>COMPACTION&nbsp;TRIGGER</b><br/><small style='color:#8b949e'>context full</small>"]
     G{"<b>PreCompact</b><br/><small style='color:#8b949e'>session-memory</small>"}
     H["<b>CONTEXT&nbsp;WIPED</b>"]
@@ -26,10 +25,9 @@ flowchart LR
 
     TitleBlock ~~~ A
     A --> B
-    B --> C
-    C -->|"trust check · IG rank"| D
+    B --> D
     D --> E
-    E -->|"classify · update posterior"| B
+    E -->|"IG rank · classify · update posterior"| B
     B -.->|"C(t) ≥ C_max"| F
     F --> G
     G -->|"session-graph.json saved"| H
@@ -42,7 +40,6 @@ flowchart LR
 
     style A fill:#0f1d33,stroke:#3fb950,stroke-width:2px,color:#e6edf3,rx:14,ry:14
     style B fill:#0f1d33,stroke:#1e3a5f,stroke-width:1.5px,color:#e6edf3,rx:8,ry:8
-    style C fill:#0f1d33,stroke:#58a6ff,stroke-width:2px,color:#e6edf3
     style D fill:#0f1d33,stroke:#1e3a5f,stroke-width:1.5px,color:#e6edf3,rx:8,ry:8
     style E fill:#0f1d33,stroke:#3fb950,stroke-width:2px,color:#e6edf3
     style F fill:#0f1d33,stroke:#d75952,stroke-width:2px,color:#e6edf3,rx:8,ry:8

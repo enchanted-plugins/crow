@@ -2,9 +2,8 @@ graph TD
     start(["Session Start"]) --> turns
     subgraph turns["Active Session"]
         t1["Turn N: Tool Call"]
-        t1 --> pre["PreToolUse<br/>decision-gate"]
-        pre --> exec["Tool Executes"]
-        exec --> post["PostToolUse<br/>change-tracker, trust-scorer"]
+        t1 --> exec["Tool Executes"]
+        exec --> post["PostToolUse<br/>change-tracker, trust-scorer, decision-gate"]
         post --> t1
     end
     turns -->|"Context full"| compact["⚠️ Compaction"]

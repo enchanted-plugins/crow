@@ -38,9 +38,9 @@ Beta-Bernoulli conjugate prior starting from Beta(2, 2) (uninformative, centered
 
 <p align="center"><img src="../assets/math/h3-infogain.svg" alt="IG(X) = H(X) = -p log2(p) - (1-p) log2(1-p)"></p>
 
-Binary entropy: maximum at `p = 0.5` (IG = 1.0), minimum at `p ∈ {0, 1}` (IG = 0). Files with trust closest to 0.5 are those where the model is least certain — they carry the most information per review minute. Since Bash cannot compute logarithms natively, a 19-bucket lookup table in `shared/constants.sh` covers `p` from 0.05 to 0.95 in 5% increments. PreToolUse uses the lookup to pick review order.
+Binary entropy: maximum at `p = 0.5` (IG = 1.0), minimum at `p ∈ {0, 1}` (IG = 0). Files with trust closest to 0.5 are those where the model is least certain — they carry the most information per review minute. Since Bash cannot compute logarithms natively, a 19-bucket lookup table in `shared/constants.sh` covers `p` from 0.05 to 0.95 in 5% increments. PostToolUse uses the lookup to pick review order.
 
-**Implementation:** `plugins/decision-gate/hooks/pre-tool-use/gate-change.sh`, `shared/constants.sh`
+**Implementation:** `plugins/decision-gate/hooks/post-tool-use/gate-change.sh`, `shared/constants.sh`
 
 ---
 
@@ -58,13 +58,13 @@ The `save-session.sh` hook (PreCompact) gathers the 200 most recent changes from
 
 ## H5. Adversarial Self-Review
 
-**Problem:** For low-trust changes, surface targeted questions that catch common omissions — gutted tests, removed auth, exposed secrets — before the write executes.
+**Problem:** For low-trust changes, surface targeted questions that catch common omissions — gutted tests, removed auth, exposed secrets — immediately after the write executes.
 
 H5 is dispatch logic, not closed-form. Trigger rule: `if trust < 0.4 then emit Q(change_type); exit 0` (advisory only). Cooldown: skip advisory for the next 3 turns after issuing one.
 
-Maps change type to a curated question set: `config → "secrets/env overrides?"`, `test → "assertion weakening?"`, `source → "regression/auth loss?"`, `schema → "reversible/consumer breakage?"`. PreToolUse runs before the write hits disk, giving the developer a last chance to reconsider. The 3-turn cooldown prevents question fatigue.
+Maps change type to a curated question set: `config → "secrets/env overrides?"`, `test → "assertion weakening?"`, `source → "regression/auth loss?"`, `schema → "reversible/consumer breakage?"`. PostToolUse runs immediately after the write hits disk, giving the developer a chance to reconsider before downstream changes compound. The 3-turn cooldown prevents question fatigue.
 
-**Implementation:** `plugins/decision-gate/hooks/pre-tool-use/gate-change.sh`
+**Implementation:** `plugins/decision-gate/hooks/post-tool-use/gate-change.sh`
 
 ---
 

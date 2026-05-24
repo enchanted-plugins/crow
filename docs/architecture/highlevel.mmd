@@ -5,7 +5,7 @@ graph TD
     change_tracker_out(["state/metrics.jsonl"])
     change_tracker --> change_tracker_out
     style change_tracker fill:#161b22,stroke:#3fb950,color:#e6edf3
-    decision_gate["decision-gate<br/><small>PreToolUse</small>"]
+    decision_gate["decision-gate<br/><small>PostToolUse</small>"]
     CC --> decision_gate
     decision_gate_out(["state/metrics.jsonl"])
     decision_gate --> decision_gate_out

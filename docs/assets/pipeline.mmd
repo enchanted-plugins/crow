@@ -18,7 +18,7 @@ flowchart TD
 
     CC(["<div style='text-align:center;line-height:1.8;padding:4px 12px'><b style='letter-spacing:1.5px'>CLAUDE&nbsp;CODE&nbsp;·&nbsp;FILE&nbsp;CHANGES</b><br/><span style='color:#8b949e;font-size:12px'>Write · Edit · MultiEdit</span></div>"])
 
-    subgraph DG["<div style='text-align:center;min-width:940px;line-height:2'><div><span style='font-family:ui-monospace,monospace;color:#8b949e;font-size:11px;letter-spacing:3px'>PLUGIN&nbsp;01&nbsp;·&nbsp;PreToolUse</span>&nbsp;&nbsp;·&nbsp;&nbsp;<b style='letter-spacing:2px'>DECISION-GATE</b></div><div style='color:#6e7681;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:1.2px'>hook&nbsp;·&nbsp;ordered&nbsp;review&nbsp;·&nbsp;red-team&nbsp;low-trust&nbsp;·&nbsp;τ&nbsp;≈&nbsp;~20ms/change</div></div>"]
+    subgraph DG["<div style='text-align:center;min-width:940px;line-height:2'><div><span style='font-family:ui-monospace,monospace;color:#8b949e;font-size:11px;letter-spacing:3px'>PLUGIN&nbsp;01&nbsp;·&nbsp;PostToolUse</span>&nbsp;&nbsp;·&nbsp;&nbsp;<b style='letter-spacing:2px'>DECISION-GATE</b></div><div style='color:#6e7681;font-size:11px;font-family:ui-monospace,monospace;letter-spacing:1.2px'>hook&nbsp;·&nbsp;ordered&nbsp;review&nbsp;·&nbsp;red-team&nbsp;low-trust&nbsp;·&nbsp;τ&nbsp;≈&nbsp;~20ms/change</div></div>"]
         direction LR
         V3["<div style='text-align:center;line-height:1.7'>V3&nbsp;INFORMATION-GAIN<br/>ORDERING<br/><small style='color:#6e7681'>IG(X) = H(X) = −p log₂ p − (1−p) log₂(1−p)</small></div>"]
         V5["<div style='text-align:center;line-height:1.7'>V5&nbsp;ADVERSARIAL<br/>SELF-REVIEW<br/><small style='color:#6e7681'>triggered when trust &lt; 0.4</small></div>"]
@@ -42,11 +42,11 @@ flowchart TD
 
     subgraph Legend["<div style='font-family:ui-monospace,monospace;color:#8b949e;font-size:11px;letter-spacing:3px;min-width:940px;text-align:center'>LEGEND&nbsp;&nbsp;·&nbsp;&nbsp;HOOK&nbsp;POINT&nbsp;→&nbsp;PLUGIN&nbsp;→&nbsp;ALGORITHMS</div>"]
         direction LR
-        lg1["<span style='color:#58a6ff'>■</span>&nbsp;&nbsp;PreToolUse&nbsp;·&nbsp;gate"] --- lg2["<span style='color:#3fb950'>■</span>&nbsp;&nbsp;PostToolUse&nbsp;·&nbsp;observation"] --- lg3["<span style='color:#d29922'>■</span>&nbsp;&nbsp;PostToolUse&nbsp;·&nbsp;scoring"] --- lg4["<span style='color:#bc8cff'>■</span>&nbsp;&nbsp;PreCompact&nbsp;·&nbsp;persistence"]
+        lg1["<span style='color:#58a6ff'>■</span>&nbsp;&nbsp;PostToolUse&nbsp;·&nbsp;gate"] --- lg2["<span style='color:#3fb950'>■</span>&nbsp;&nbsp;PostToolUse&nbsp;·&nbsp;observation"] --- lg3["<span style='color:#d29922'>■</span>&nbsp;&nbsp;PostToolUse&nbsp;·&nbsp;scoring"] --- lg4["<span style='color:#bc8cff'>■</span>&nbsp;&nbsp;PreCompact&nbsp;·&nbsp;persistence"]
     end
 
     TitleBlock ~~~ CC
-    CC -->|"PreToolUse"| DG
+    CC -->|"PostToolUse"| DG
     CC -->|"PostToolUse"| CT
     CC -->|"PostToolUse"| TS
     CC -->|"PreCompact"| SM

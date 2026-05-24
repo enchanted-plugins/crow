@@ -102,9 +102,9 @@ GATE_INPUT=$(jq -n \
   --arg t "$TRANSCRIPT" \
   --arg f "$PROJ/.env" \
   --arg cwd "$PROJ" \
-  '{transcript_path:$t, cwd:$cwd, tool_name:"Write", tool_input:{file_path:$f}, hook_event_name:"PreToolUse"}')
+  '{transcript_path:$t, cwd:$cwd, tool_name:"Write", tool_input:{file_path:$f}, hook_event_name:"PostToolUse"}')
 
-GATE_STDERR=$(printf "%s" "$GATE_INPUT" | CLAUDE_PLUGIN_ROOT="plugins/decision-gate" bash plugins/decision-gate/hooks/pre-tool-use/gate-change.sh 2>&1 >/dev/null)
+GATE_STDERR=$(printf "%s" "$GATE_INPUT" | CLAUDE_PLUGIN_ROOT="plugins/decision-gate" bash plugins/decision-gate/hooks/post-tool-use/gate-change.sh 2>&1 >/dev/null)
 GATE_EXIT=$?
 
 echo "  Exit code: $GATE_EXIT (0=advisory-only, 2=blocked)"
@@ -125,9 +125,9 @@ GATE_INPUT=$(jq -n \
   --arg t "$TRANSCRIPT" \
   --arg f "$PROJ/src/auth.ts" \
   --arg cwd "$PROJ" \
-  '{transcript_path:$t, cwd:$cwd, tool_name:"Edit", tool_input:{file_path:$f}, hook_event_name:"PreToolUse"}')
+  '{transcript_path:$t, cwd:$cwd, tool_name:"Edit", tool_input:{file_path:$f}, hook_event_name:"PostToolUse"}')
 
-GATE_STDERR=$(printf "%s" "$GATE_INPUT" | CLAUDE_PLUGIN_ROOT="plugins/decision-gate" bash plugins/decision-gate/hooks/pre-tool-use/gate-change.sh 2>&1 >/dev/null)
+GATE_STDERR=$(printf "%s" "$GATE_INPUT" | CLAUDE_PLUGIN_ROOT="plugins/decision-gate" bash plugins/decision-gate/hooks/post-tool-use/gate-change.sh 2>&1 >/dev/null)
 
 if [[ -z "$GATE_STDERR" ]]; then
   echo "  No advisory (source code file — moderate/high trust)."

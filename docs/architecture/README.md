@@ -17,7 +17,7 @@ Change-trust-review-learn loop: observe every write, score trust, surface questi
 | Diagram | File | Description |
 |---------|------|-------------|
 | High Level | [highlevel.mmd](highlevel.mmd) | 4 plugins connected to Claude Code with hook phases |
-| Session Lifecycle | [lifecycle.mmd](lifecycle.mmd) | PreToolUse → Edit → PostToolUse → PreCompact cycle |
+| Session Lifecycle | [lifecycle.mmd](lifecycle.mmd) | Edit → PostToolUse → PreCompact cycle |
 | Data Flow | [dataflow.mmd](dataflow.mmd) | Change events → trust scores → session graph |
 | Hook Bindings | [hooks.mmd](hooks.mmd) | Hook binding map with matchers and timeouts per plugin |
 
@@ -85,5 +85,5 @@ tests/
 |-------|-------|----------|
 | ≥ 0.80 | HIGH | Pass through; light acknowledgment |
 | 0.40 – 0.80 | MEDIUM | Log with reason codes |
-| 0.20 – 0.40 | LOW | Surface adversarial questions on next PreToolUse |
+| 0.20 – 0.40 | LOW | Surface adversarial questions on next PostToolUse |
 | < 0.20 | CRITICAL | Emphasize in session summary, flag for review |

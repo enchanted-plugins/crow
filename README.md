@@ -81,12 +81,12 @@ The review-and-comprehension loop eats 40-60% of every Claude Code session:
 
 ## How It Works
 
-Four plugins, one concern each, bound to specific hook points. **decision-gate** on `PreToolUse` orders pending reviews by information gain (H3) and red-teams low-trust changes (H5). **change-tracker** on `PostToolUse` classifies and clusters every diff (H1). **trust-scorer** on `PostToolUse` updates a Beta-Bernoulli posterior per file (H2). **session-memory** on `PreCompact` builds a continuity graph and persists cross-session learnings (H4, H6). The diagram below shows the bindings and state outputs.
+Four plugins, one concern each, bound to specific hook points. **decision-gate** on `PostToolUse` orders pending reviews by information gain (H3) and red-teams low-trust changes (H5). **change-tracker** on `PostToolUse` classifies and clusters every diff (H1). **trust-scorer** on `PostToolUse` updates a Beta-Bernoulli posterior per file (H2). **session-memory** on `PreCompact` builds a continuity graph and persists cross-session learnings (H4, H6). The diagram below shows the bindings and state outputs.
 
 <p align="center">
   <a href="docs/assets/pipeline.mmd" title="View hook-binding diagram source (Mermaid)">
     <img src="docs/assets/pipeline.svg"
-         alt="Crow hook bindings: Claude Code file changes fan out into decision-gate (PreToolUse · H3/H5), change-tracker (PostToolUse · H1), trust-scorer (PostToolUse · H2), session-memory (PreCompact · H4/H6); each plugin emits its own state artifact (advisory, changes.jsonl, trust.json, session-graph.json)"
+         alt="Crow hook bindings: Claude Code file changes fan out into decision-gate (PostToolUse · H3/H5), change-tracker (PostToolUse · H1), trust-scorer (PostToolUse · H2), session-memory (PreCompact · H4/H6); each plugin emits its own state artifact (advisory, changes.jsonl, trust.json, session-graph.json)"
          width="100%" style="max-width:1100px;">
   </a>
 </p>
@@ -124,7 +124,7 @@ The tool executes, then `PostToolUse` runs decision-gate (H3 IG-ranking + H5 adv
 <p align="center">
   <a href="docs/assets/lifecycle.mmd" title="View session-lifecycle diagram source (Mermaid)">
     <img src="docs/assets/lifecycle.svg"
-         alt="Crow session lifecycle: session start, file change, PreToolUse (decision-gate) runs trust-check and IG ranking, tool executes, PostToolUse (change-tracker + trust-scorer) classifies and updates posterior; compaction triggers PreCompact (session-memory) to write session-graph.json; context wiped; restorer agent rebuilds; session continues"
+         alt="Crow session lifecycle: session start, file change, tool executes, PostToolUse fires decision-gate (trust-check + IG ranking), change-tracker, and trust-scorer (classify + update posterior); compaction triggers PreCompact (session-memory) to write session-graph.json; context wiped; restorer agent rebuilds; session continues"
          width="100%" style="max-width:1100px;">
   </a>
 </p>
@@ -188,7 +188,7 @@ Three hook events fan out into four color-coded journals — one per sub-plugin 
 <p align="center">
   <a href="docs/assets/state-flow.mmd" title="View state-flow diagram source (Mermaid)">
     <img src="docs/assets/state-flow.svg"
-         alt="Crow per-session state flow: three hooks (PreToolUse, PostToolUse Write|Edit|MultiEdit, PreCompact) feed four color-coded journals (change-tracker changes+metrics, trust-scorer trust+learnings+metrics, decision-gate metrics, session-memory graph+summary+metrics) converging on the enchanted-mcp bus and the /crow:* query surface"
+         alt="Crow per-session state flow: two hooks (PostToolUse Write|Edit|MultiEdit, PreCompact) feed four color-coded journals (change-tracker changes+metrics, trust-scorer trust+learnings+metrics, decision-gate metrics, session-memory graph+summary+metrics) converging on the enchanted-mcp bus and the /crow:* query surface"
          width="100%" style="max-width:1100px;">
   </a>
 </p>

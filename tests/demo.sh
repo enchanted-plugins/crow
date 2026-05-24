@@ -76,8 +76,8 @@ run_pre() {
   local file="$1"
   local input
   input=$(jq -n --arg t "$TRANSCRIPT" --arg f "$file" --arg cwd "$PROJ" \
-    '{transcript_path:$t, cwd:$cwd, tool_name:"Write", tool_input:{file_path:$f}, hook_event_name:"PreToolUse"}')
-  printf "%s" "$input" | CLAUDE_PLUGIN_ROOT="plugins/decision-gate" bash plugins/decision-gate/hooks/pre-tool-use/gate-change.sh
+    '{transcript_path:$t, cwd:$cwd, tool_name:"Write", tool_input:{file_path:$f}, hook_event_name:"PostToolUse"}')
+  printf "%s" "$input" | CLAUDE_PLUGIN_ROOT="plugins/decision-gate" bash plugins/decision-gate/hooks/post-tool-use/gate-change.sh
 }
 
 # ═══════════════════════════════════════════════
@@ -184,11 +184,11 @@ echo ""
 echo "───────────────────────────────────────────────"
 echo ""
 echo " Claude tries to write .env AGAIN..."
-echo " Decision gate fires BEFORE the write:"
+echo " Decision gate fires AFTER the write:"
 echo ""
 rm -f "/tmp/crow-gate-cooldown-${SESSION_HASH}" 2>/dev/null
 
-printf "  PreToolUse   → " ; run_pre "$PROJ/.env" 2>&1 | grep -o '\[Crow\].*' || true
+printf "  PostToolUse  → " ; run_pre "$PROJ/.env" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
 
 # ── SHOW THE TRUST TABLE ──

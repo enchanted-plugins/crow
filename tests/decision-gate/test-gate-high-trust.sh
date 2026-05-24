@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="${SCRIPT_DIR}/../.."
-HOOK="${REPO_ROOT}/plugins/decision-gate/hooks/pre-tool-use/gate-change.sh"
+HOOK="${REPO_ROOT}/plugins/decision-gate/hooks/post-tool-use/gate-change.sh"
 
 MOCK_TRANSCRIPT=$(mktemp)
 echo '{"role":"user","content":"test"}' > "$MOCK_TRANSCRIPT"
@@ -24,7 +24,7 @@ echo '{"src/safe.ts": {"alpha": 8.5, "beta": 1.5, "score": 0.85, "type": "source
 
 INPUT=$(jq -n \
   --arg transcript "$MOCK_TRANSCRIPT" \
-  '{transcript_path: $transcript, cwd: "/tmp", tool_name: "Write", tool_input: {file_path: "src/safe.ts"}, hook_event_name: "PreToolUse"}')
+  '{transcript_path: $transcript, cwd: "/tmp", tool_name: "Write", tool_input: {file_path: "src/safe.ts"}, hook_event_name: "PostToolUse"}')
 
 # Run the hook and capture stderr
 STDERR_OUT=""
