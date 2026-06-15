@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "crow-decision-gate-scripts": {
+      "cwd": ".",
+      "command": "python",
+      "args": [
+        "./mcp/server.py"
+      ]
+    }
+  }
+}

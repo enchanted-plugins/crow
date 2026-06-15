@@ -1,0 +1,32 @@
+{
+  "name": "change-tracker",
+  "version": "1.0.0",
+  "description": "Tracks every file change with semantic diff compression and change classification.",
+  "author": {
+    "name": "Enchanter Labs"
+  },
+  "license": "MIT",
+  "keywords": [
+    "changes",
+    "diff",
+    "tracking",
+    "semantic",
+    "classification"
+  ],
+  "interface": {
+    "displayName": "Change Tracker",
+    "shortDescription": "Tracks every file change with semantic diff compression and change classificati\u2026",
+    "longDescription": "Tracks every file change with semantic diff compression and change classification.",
+    "developerName": "Enchanter Labs",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use Change Tracker on my project"
+    ]
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

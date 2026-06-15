@@ -1,0 +1,32 @@
+{
+  "name": "trust-scorer",
+  "version": "1.0.0",
+  "description": "Bayesian trust scoring of each change with prior-based confidence and posterior updates.",
+  "author": {
+    "name": "Enchanter Labs"
+  },
+  "license": "MIT",
+  "keywords": [
+    "trust",
+    "bayesian",
+    "scoring",
+    "confidence",
+    "risk"
+  ],
+  "interface": {
+    "displayName": "Trust Scorer",
+    "shortDescription": "Bayesian trust scoring of each change with prior-based confidence and posterior\u2026",
+    "longDescription": "Bayesian trust scoring of each change with prior-based confidence and posterior updates.",
+    "developerName": "Enchanter Labs",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use Trust Scorer on my project"
+    ]
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

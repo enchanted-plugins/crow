@@ -1,0 +1,33 @@
+{
+  "name": "session-memory",
+  "version": "1.0.0",
+  "description": "Session continuity graph for compaction survival. Preserves decision history and learned preferences.",
+  "author": {
+    "name": "Enchanter Labs"
+  },
+  "license": "MIT",
+  "keywords": [
+    "session",
+    "memory",
+    "compaction",
+    "graph",
+    "continuity",
+    "learning"
+  ],
+  "interface": {
+    "displayName": "Session Memory",
+    "shortDescription": "Session continuity graph for compaction survival. Preserves decision history an\u2026",
+    "longDescription": "Session continuity graph for compaction survival. Preserves decision history and learned preferences.",
+    "developerName": "Enchanter Labs",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use Session Memory on my project"
+    ]
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

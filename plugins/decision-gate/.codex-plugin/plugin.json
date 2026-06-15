@@ -1,0 +1,32 @@
+{
+  "name": "decision-gate",
+  "version": "1.0.0",
+  "description": "Per-change review with information-gain ordering and adversarial self-review for low-trust changes.",
+  "author": {
+    "name": "Enchanter Labs"
+  },
+  "license": "MIT",
+  "keywords": [
+    "review",
+    "decision",
+    "gate",
+    "adversarial",
+    "information-gain"
+  ],
+  "interface": {
+    "displayName": "Decision Gate",
+    "shortDescription": "Per-change review with information-gain ordering and adversarial self-review fo\u2026",
+    "longDescription": "Per-change review with information-gain ordering and adversarial self-review for low-trust changes.",
+    "developerName": "Enchanter Labs",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use Decision Gate on my project"
+    ]
+  },
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}
