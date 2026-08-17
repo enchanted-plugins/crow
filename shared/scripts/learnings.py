@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """Crow V6: Exponential Strategy Averaging — cross-session EMA accumulation.
 
-Accumulates developer preferences across sessions using exponential
-moving averages of per-type trust rates and review frequencies.
+Accumulates developer patterns across sessions using exponential moving averages
+of per-type FLAG RATES (the fraction of changes to a given type that raised a
+content-detector flag) and review frequencies.
+
+This tracks an honest observable — how often each change type actually trips a
+detector — NOT a Bayesian trust score. There is no trust.json and no posterior.
 Not time-critical — called from save-session.sh at compaction time.
 Stdlib only — no external dependencies.
 
@@ -63,26 +67,41 @@ def count_pattern(filepath, pattern):
     return count
 
 
-def load_trust_scores_by_type(trust_path):
-    """Load trust.json and compute mean trust per change type."""
-    trust_data = load_json(trust_path)
-    type_scores = {}
-    type_counts = {}
+def load_flag_rates_by_type(metrics_path):
+    """Read `change_flagged` events and compute the flag rate per change type.
 
-    for filepath, entry in trust_data.items():
-        ctype = entry.get("type", "source_code")
-        score = entry.get("score", 0.5)
-        type_scores[ctype] = type_scores.get(ctype, 0.0) + score
-        type_counts[ctype] = type_counts.get(ctype, 0) + 1
+    flag_rate = (# changes of this type that raised >=1 flag) / (# changes of this type).
+    Returns {change_type: rate_or_None}. None means no data for that type.
+    """
+    totals = {}
+    flagged = {}
+    if os.path.isfile(metrics_path):
+        try:
+            with open(metrics_path, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        obj = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if obj.get("event") != "change_flagged":
+                        continue
+                    ctype = obj.get("type", "source_code")
+                    totals[ctype] = totals.get(ctype, 0) + 1
+                    if obj.get("severity", "clean") != "clean":
+                        flagged[ctype] = flagged.get(ctype, 0) + 1
+        except IOError:
+            pass
 
-    means = {}
+    rates = {}
     for ctype in CHANGE_TYPES:
-        if type_counts.get(ctype, 0) > 0:
-            means[ctype] = type_scores[ctype] / type_counts[ctype]
+        if totals.get(ctype, 0) > 0:
+            rates[ctype] = flagged.get(ctype, 0) / totals[ctype]
         else:
-            means[ctype] = None  # No data for this type
-
-    return means
+            rates[ctype] = None  # No data for this type
+    return rates
 
 
 def main():
@@ -93,7 +112,6 @@ def main():
     plugins_dir = sys.argv[1]
 
     # Paths
-    ts_trust = os.path.join(plugins_dir, "trust-scorer", "state", "trust.json")
     ts_metrics = os.path.join(plugins_dir, "trust-scorer", "state", "metrics.jsonl")
     ct_metrics = os.path.join(plugins_dir, "change-tracker", "state", "metrics.jsonl")
     dg_metrics = os.path.join(plugins_dir, "decision-gate", "state", "metrics.jsonl")
@@ -106,14 +124,14 @@ def main():
 
     # Current session data
     changes_tracked = count_pattern(ct_metrics, '"change_tracked"')
-    trust_scored = count_pattern(ts_metrics, '"trust_scored"')
+    changes_flagged = count_pattern(ts_metrics, '"change_flagged"')
     reviews_issued = count_pattern(dg_metrics, '"review_advisory"')
 
-    if changes_tracked == 0 and trust_scored == 0:
+    if changes_tracked == 0 and changes_flagged == 0:
         sys.exit(0)
 
-    # Compute per-type trust means for this session
-    session_means = load_trust_scores_by_type(ts_trust)
+    # Compute per-type flag rates for this session
+    session_rates = load_flag_rates_by_type(ts_metrics)
 
     # Update type priors using EMA
     prev_priors = existing.get("type_priors", {})
@@ -121,52 +139,51 @@ def main():
 
     for ctype in CHANGE_TYPES:
         prev = prev_priors.get(ctype, {})
-        prev_rate = prev.get("trust_rate", 0.5)
+        prev_rate = prev.get("flag_rate", 0.0)
         prev_review = prev.get("review_rate", 0.0)
         prev_sess = prev.get("sessions", 0)
 
-        current_rate = session_means.get(ctype)
+        current_rate = session_rates.get(ctype)
         if current_rate is not None:
             new_rate = ema(ALPHA, current_rate, prev_rate)
         else:
             new_rate = prev_rate  # No data — keep prior
 
-        # Review rate for this type (approximate: reviews / changes for this type)
-        # Simple heuristic: if any reviews were issued and this type had low trust, it was likely reviewed
+        # Review rate for this type: if reviews were issued and this type flagged often
         current_review = 0.0
-        if reviews_issued > 0 and current_rate is not None and current_rate < 0.4:
+        if reviews_issued > 0 and current_rate is not None and current_rate > 0.5:
             current_review = 1.0
         new_review = ema(ALPHA, current_review, prev_review)
 
         updated_priors[ctype] = {
-            "trust_rate": round(new_rate, 4),
+            "flag_rate": round(new_rate, 4),
             "review_rate": round(new_review, 4),
             "sessions": prev_sess + (1 if current_rate is not None else 0),
         }
 
-    # Detect chronic patterns
+    # Detect chronic patterns — types that persistently trip detectors
     alerts = []
     for ctype, data in updated_priors.items():
-        if data["trust_rate"] < 0.4 and data["sessions"] >= 3:
-            alerts.append(f"chronic:low_trust:{ctype}")
+        if data["flag_rate"] > 0.5 and data["sessions"] >= 3:
+            alerts.append(f"chronic:high_flag_rate:{ctype}")
         if data["review_rate"] > 0.7 and data["sessions"] >= 3:
             alerts.append(f"chronic:high_review:{ctype}")
 
     # Compute averages
-    prev_avg_trust = existing.get("avg_trust", 0.5)
+    prev_avg_flag = existing.get("avg_flag_rate", 0.0)
     prev_avg_changes = existing.get("avg_changes_per_session", 0.0)
 
-    all_scores = [v for v in session_means.values() if v is not None]
-    current_avg_trust = sum(all_scores) / len(all_scores) if all_scores else 0.5
+    all_rates = [v for v in session_rates.values() if v is not None]
+    current_avg_flag = sum(all_rates) / len(all_rates) if all_rates else 0.0
 
-    new_avg_trust = ema(ALPHA, current_avg_trust, prev_avg_trust)
+    new_avg_flag = ema(ALPHA, current_avg_flag, prev_avg_flag)
     new_avg_changes = ema(ALPHA, changes_tracked, prev_avg_changes)
 
     # Build learnings JSON
     timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
     learnings = {
-        "version": 1,
+        "version": 2,
         "updated": timestamp,
         "sessions_recorded": new_sessions,
         "type_priors": updated_priors,
@@ -175,7 +192,7 @@ def main():
             "reviews_this_session": reviews_issued,
         },
         "alerts": alerts,
-        "avg_trust": round(new_avg_trust, 4),
+        "avg_flag_rate": round(new_avg_flag, 4),
         "avg_changes_per_session": round(new_avg_changes, 1),
     }
 

@@ -18,7 +18,7 @@ Change-trust-review-learn loop: observe every write, score trust, surface questi
 |---------|------|-------------|
 | High Level | [highlevel.mmd](highlevel.mmd) | 4 plugins connected to Claude Code with hook phases |
 | Session Lifecycle | [lifecycle.mmd](lifecycle.mmd) | Edit → PostToolUse → PreCompact cycle |
-| Data Flow | [dataflow.mmd](dataflow.mmd) | Change events → trust scores → session graph |
+| Data Flow | [dataflow.mmd](dataflow.mmd) | Change events → detector flags → session graph |
 | Hook Bindings | [hooks.mmd](hooks.mmd) | Hook binding map with matchers and timeouts per plugin |
 
 ## Plugin Summary
@@ -27,7 +27,7 @@ Change-trust-review-learn loop: observe every write, score trust, surface questi
 |--------|-----------|---------|---------|------------|
 | decision-gate | PostToolUse | Write/Edit/MultiEdit | 10s | H3 (Info-Gain), H5 (Adversarial) |
 | change-tracker | PostToolUse | Write/Edit/MultiEdit | 15s | H1 (Semantic Diff) |
-| trust-scorer | PostToolUse | Write/Edit/MultiEdit | 15s | H2 (Bayesian Trust) |
+| trust-scorer | PostToolUse | Write/Edit/MultiEdit | 15s | H2 (Content Detectors) |
 | session-memory | PreCompact | — | 30s | H4 (Continuity), H6 (Learning) |
 
 ## Algorithms (H1–H6)
@@ -35,8 +35,8 @@ Change-trust-review-learn loop: observe every write, score trust, surface questi
 | Code | Name | Where |
 |------|------|-------|
 | H1 | Semantic Diff Analysis | `shared/scripts/diff-analyzer.py` |
-| H2 | Bayesian Trust Scoring | `plugins/trust-scorer/hooks/post-tool-use/score-change.sh` |
-| H3 | Information-Gain Ordering | `plugins/decision-gate/hooks/post-tool-use/gate-change.sh` |
+| H2 | Content-Detector Suite | `plugins/trust-scorer/hooks/post-tool-use/score-change.sh` |
+| H3 | Severity-Ordered Review | `plugins/decision-gate/hooks/post-tool-use/gate-change.sh` |
 | H4 | Session Continuity Graph | `plugins/session-memory/hooks/pre-compact/save-session.sh` |
 | H5 | Adversarial Self-Review | `plugins/decision-gate/hooks/post-tool-use/gate-change.sh` |
 | H6 | Exponential Strategy Averaging (EMA Accumulation) | `shared/scripts/learnings.py` |
@@ -47,9 +47,9 @@ Full derivations: [docs/science/README.md](../science/README.md).
 
 ```
 1. Write/Edit/MultiEdit tool executes
-2. PostToolUse  → decision-gate: H3 IG-ranking + H5 adversarial questions on low-trust writes (reads fresh trust)
+2. PostToolUse  → decision-gate: H3 severity-ordering + H5 adversarial questions on flagged writes (reads fresh flags)
 3. PostToolUse  → change-tracker: H1 semantic diff, hunk classification, cluster grouping
-4. PostToolUse  → trust-scorer: H2 Bayesian posterior update + red-flag detection
+4. PostToolUse  → trust-scorer: H2 stateless content-detector suite (red-flag detection → severity)
 5. PreCompact   → session-memory: H4 continuity graph + H6 Exponential Strategy Averaging persistence
 ```
 
@@ -58,7 +58,7 @@ Full derivations: [docs/science/README.md](../science/README.md).
 | Plugin | Files | Purpose |
 |--------|-------|---------|
 | change-tracker | `changes.jsonl`, `metrics.jsonl` | Per-change hunks + cluster ids |
-| trust-scorer | `trust.json`, `metrics.jsonl` | Beta posteriors per file |
+| trust-scorer | `metrics.jsonl` | Detector flags + severity per change |
 | decision-gate | `metrics.jsonl` | Advisory events, cooldown state |
 | session-memory | `session-graph.json`, `session-summary.md`, `metrics.jsonl` | Cross-session continuity |
 | shared | `learnings.json` | EMA rates per change type |
@@ -70,12 +70,12 @@ Full derivations: [docs/science/README.md](../science/README.md).
 ```
 tests/
 ├── change-tracker/    2 tests (classification, clustering)
-├── decision-gate/     3 tests (IG ordering, adversarial questions, cooldown)
+├── decision-gate/     3 tests (flagged advisory, clean = no advisory, cooldown)
 ├── session-memory/    2 tests (graph assembly, markdown export)
-├── trust-scorer/      3 tests (Bayesian update, red-flag detection, priors)
+├── trust-scorer/      3 tests (clean assessment, flag detection, statelessness)
 ├── shared/            2 tests (sanitize paths, JSON validation)
 ├── demo.sh            Interactive session walk-through
-├── integration-test.sh Full pipeline test (change → trust → gate → graph)
+├── integration-test.sh Full pipeline test (change → flags → gate → graph)
 └── run-all.sh         Master runner
 ```
 

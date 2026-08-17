@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Crow V4 report: Formatted session dashboard.
 
-Reads metrics, changes, trust, and session graph from all plugin state dirs.
+Reads metrics, changes, and the session graph from all plugin state dirs.
+Reports the content-detector flags raised this session (severity distribution and
+flagged files) — NOT a trust score. Crow has no numeric trust value; each change
+is assessed statelessly by its own content detectors.
+
 Generates a box-drawing formatted text report.
 Stdlib only — no external dependencies.
 
@@ -13,6 +17,9 @@ import json
 import os
 import sys
 from datetime import datetime
+
+
+SEVERITY_ORDER = {"CRITICAL": 0, "HIGH": 1, "WARNING": 2, "clean": 3}
 
 
 def count_events(filepath, pattern):
@@ -61,33 +68,40 @@ def load_jsonl_tail(filepath, n=50):
     return entries
 
 
+def load_flag_events(filepath, n=500):
+    """Load `change_flagged` events, most recent record per file."""
+    by_file = {}
+    for e in load_jsonl_tail(filepath, n):
+        if e.get("event") == "change_flagged" and e.get("file"):
+            by_file[e["file"]] = e
+    return by_file
+
+
 def generate_report(plugins_dir):
     """Generate the session report from all plugin state."""
     ct_metrics = os.path.join(plugins_dir, "change-tracker", "state", "metrics.jsonl")
     ct_changes = os.path.join(plugins_dir, "change-tracker", "state", "changes.jsonl")
     ts_metrics = os.path.join(plugins_dir, "trust-scorer", "state", "metrics.jsonl")
-    ts_trust = os.path.join(plugins_dir, "trust-scorer", "state", "trust.json")
     dg_metrics = os.path.join(plugins_dir, "decision-gate", "state", "metrics.jsonl")
     sm_graph = os.path.join(plugins_dir, "session-memory", "state", "session-graph.json")
 
     # Counts
     changes_tracked = count_events(ct_metrics, '"change_tracked"')
-    trust_scored = count_events(ts_metrics, '"trust_scored"')
+    changes_flagged = count_events(ts_metrics, '"change_flagged"')
     reviews_issued = count_events(dg_metrics, '"review_advisory"')
 
-    # Trust distribution
-    trust_data = load_json(ts_trust)
-    high = sum(1 for e in trust_data.values() if e.get("score", 0.5) >= 0.8)
-    low = sum(1 for e in trust_data.values() if e.get("score", 0.5) < 0.4)
-    critical = sum(1 for e in trust_data.values() if e.get("score", 0.5) < 0.2)
-    medium = len(trust_data) - high - low
+    # Severity distribution (per file, latest flag record)
+    by_file = load_flag_events(ts_metrics)
+    sev = {"CRITICAL": 0, "HIGH": 0, "WARNING": 0, "clean": 0}
+    for e in by_file.values():
+        s = e.get("severity", "clean")
+        sev[s] = sev.get(s, 0) + 1
+    files_assessed = len(by_file)
 
-    # Average trust
-    scores = [e.get("score", 0.5) for e in trust_data.values()]
-    avg_trust = sum(scores) / len(scores) if scores else 0.0
-
-    # Riskiest files
-    riskiest = sorted(trust_data.items(), key=lambda x: x[1].get("score", 1.0))[:5]
+    # Flagged files (most severe first)
+    flagged = [e for e in by_file.values() if e.get("severity", "clean") != "clean"]
+    flagged.sort(key=lambda x: (SEVERITY_ORDER.get(x.get("severity"), 9), x.get("file") or ""))
+    flagged = flagged[:5]
 
     # Changes by type
     changes = load_jsonl_tail(ct_changes, 200)
@@ -107,19 +121,20 @@ def generate_report(plugins_dir):
         "",
         "  CROW SESSION REPORT",
         "",
-        f"  Trust:    avg {avg_trust:.2f} | {high} high, {medium} medium, {low} low, {critical} critical",
-        f"  Changes:  {changes_tracked} tracked | {trust_scored} scored | {reviews_issued} reviewed",
+        f"  Flags:    {sev['CRITICAL']} critical, {sev['HIGH']} high, {sev['WARNING']} warning ({files_assessed} files assessed)",
+        f"  Changes:  {changes_tracked} tracked | {changes_flagged} assessed | {reviews_issued} reviewed",
         "",
-        "  ── Trust Distribution ─────────────",
+        "  ── Severity Distribution ──────────",
     ]
 
-    if trust_data:
-        lines.append(f"  High (>0.8):     {high:>4} files")
-        lines.append(f"  Medium:          {medium:>4} files")
-        lines.append(f"  Low (<0.4):      {low:>4} files")
-        lines.append(f"  Critical (<0.2): {critical:>4} files")
+    if files_assessed:
+        clean = sev.get("clean", 0)
+        lines.append(f"  CRITICAL: {sev['CRITICAL']:>4} files")
+        lines.append(f"  HIGH:     {sev['HIGH']:>4} files")
+        lines.append(f"  WARNING:  {sev['WARNING']:>4} files")
+        lines.append(f"  clean:    {clean:>4} files")
     else:
-        lines.append("  No trust data yet")
+        lines.append("  No detector data yet")
 
     lines.append("")
     lines.append("  ── Changes by Type ────────────────")
@@ -130,16 +145,16 @@ def generate_report(plugins_dir):
         lines.append("  No changes tracked yet")
 
     lines.append("")
-    lines.append("  ── Riskiest Files ─────────────────")
-    if riskiest:
-        for filepath, entry in riskiest:
-            score = entry.get("score", 0.5)
-            ftype = entry.get("type", "unknown")
-            # Truncate long paths
+    lines.append("  ── Flagged Files ──────────────────")
+    if flagged:
+        for e in flagged:
+            filepath = e.get("file", "?")
+            sever = e.get("severity", "?")
+            flags = ", ".join(e.get("flags", []))
             display = filepath if len(filepath) <= 40 else "..." + filepath[-37:]
-            lines.append(f"  {score:.2f}  {display} ({ftype})")
+            lines.append(f"  {sever:<8}  {display} ({flags})")
     else:
-        lines.append("  No files scored yet")
+        lines.append("  No changes flagged")
 
     lines.append("")
     lines.append("  ── Review Advisories ──────────────")
@@ -150,7 +165,7 @@ def generate_report(plugins_dir):
 
     lines.append("")
     lines.append(f"  Report generated: {now}")
-    lines.append("  Methodology: Bayesian Beta-Bernoulli trust with conservative priors.")
+    lines.append("  Methodology: stateless content-detector suite (flags + severity, no score).")
     lines.append("")
 
     header = "══════════════════════════════════════"

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Test: gate-change.sh fires advisory for files with low trust
+# Test: gate-change.sh fires an advisory for a detector-flagged change
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -14,49 +14,39 @@ SESSION_HASH=$(md5sum "$MOCK_TRANSCRIPT" 2>/dev/null | cut -c1-8 || echo "test")
 # Clean state
 rm -f "/tmp/crow-gate-cooldown-${SESSION_HASH}"
 rm -f "/tmp/crow-changes-${SESSION_HASH}.jsonl"
+rm -f "/tmp/crow-flags-${SESSION_HASH}.jsonl"
 rm -f "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl"
 rm -rf "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl.lock"
 
-# Set up trust.json with a low-trust file
-TRUST_DIR="${REPO_ROOT}/plugins/trust-scorer/state"
-mkdir -p "$TRUST_DIR"
-echo '{"src/risky.ts": {"alpha": 2.3, "beta": 5.7, "score": 0.29, "type": "source_code", "ts": "2026-04-14T10:00:00Z"}}' > "${TRUST_DIR}/trust.json"
+# Seed the flags cache (as trust-scorer would have, in the same PostToolUse event)
+echo '{"ts":"2026-04-14T10:00:00Z","file":"src/risky.ts","severity":"HIGH","flags":["weak_crypto"],"type":"source_code"}' > "/tmp/crow-flags-${SESSION_HASH}.jsonl"
 
 INPUT=$(jq -n \
   --arg transcript "$MOCK_TRANSCRIPT" \
   '{transcript_path: $transcript, cwd: "/tmp", tool_name: "Write", tool_input: {file_path: "src/risky.ts"}, hook_event_name: "PostToolUse"}')
 
-# Run the hook and capture stderr
-STDERR_OUT=""
 STDERR_OUT=$(printf "%s" "$INPUT" | CLAUDE_PLUGIN_ROOT="${REPO_ROOT}/plugins/decision-gate" bash "$HOOK" 2>&1 >/dev/null || true)
 
-# Verify advisory message appeared
+FAIL=0
 if [[ "$STDERR_OUT" != *"[Crow]"* ]]; then
-  echo "FAIL: Expected '[Crow]' in stderr, got: $STDERR_OUT"
-  rm -f "$MOCK_TRANSCRIPT" "${TRUST_DIR}/trust.json"
-  exit 1
+  echo "FAIL: Expected '[Crow]' in stderr, got: $STDERR_OUT"; FAIL=1
 fi
-
-# Verify trust score is mentioned
-if [[ "$STDERR_OUT" != *"0.29"* ]] && [[ "$STDERR_OUT" != *"trust"* ]]; then
-  echo "FAIL: Expected trust score in advisory, got: $STDERR_OUT"
-  rm -f "$MOCK_TRANSCRIPT" "${TRUST_DIR}/trust.json"
-  exit 1
+if [[ "$STDERR_OUT" != *"HIGH"* ]] || [[ "$STDERR_OUT" != *"weak_crypto"* ]]; then
+  echo "FAIL: Expected severity + flag in advisory, got: $STDERR_OUT"; FAIL=1
 fi
-
-# Verify adversarial questions are present (low trust should trigger V5)
-if [[ "$STDERR_OUT" != *"Ask yourself"* ]] && [[ "$STDERR_OUT" != *"?"* ]]; then
-  echo "FAIL: Expected adversarial questions in advisory for low trust"
-  rm -f "$MOCK_TRANSCRIPT" "${TRUST_DIR}/trust.json"
-  exit 1
+if [[ "$STDERR_OUT" != *"Ask yourself"* ]]; then
+  echo "FAIL: Expected adversarial questions in advisory, got: $STDERR_OUT"; FAIL=1
+fi
+if [[ "$STDERR_OUT" == *"trust:"* ]]; then
+  echo "FAIL: advisory must not print a numeric trust score, got: $STDERR_OUT"; FAIL=1
 fi
 
 # Cleanup
 rm -f "$MOCK_TRANSCRIPT"
 rm -f "/tmp/crow-gate-cooldown-${SESSION_HASH}"
 rm -f "/tmp/crow-changes-${SESSION_HASH}.jsonl"
-rm -f "${TRUST_DIR}/trust.json"
+rm -f "/tmp/crow-flags-${SESSION_HASH}.jsonl"
 rm -f "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl"
 rm -rf "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl.lock"
 
-exit 0
+exit $FAIL

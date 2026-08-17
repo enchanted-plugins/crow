@@ -150,7 +150,7 @@
     change_tracker_out(["state/metrics.jsonl"])
     change_tracker --> change_tracker_out
     style change_tracker fill:#161b22,stroke:#3fb950,color:#e6edf3
-    decision_gate["decision-gate<br/><small>PreToolUse</small>"]
+    decision_gate["decision-gate<br/><small>PostToolUse</small>"]
     CC --> decision_gate
     decision_gate_out(["state/metrics.jsonl"])
     decision_gate --> decision_gate_out
@@ -175,7 +175,7 @@
         change_tracker_h0_trigger --> change_tracker_h0_script
     end
     subgraph decision_gate["decision-gate"]
-        decision_gate_h0_trigger["PreToolUse<br/>Write | Edit | MultiEdit"]
+        decision_gate_h0_trigger["PostToolUse<br/>Write | Edit | MultiEdit"]
         decision_gate_h0_script["gate-change.sh<br/><small>timeout: 10s</small>"]
         decision_gate_h0_trigger --> decision_gate_h0_script
     end
@@ -216,9 +216,8 @@
     start(["Session Start"]) --> turns
     subgraph turns["Active Session"]
         t1["Turn N: Tool Call"]
-        t1 --> pre["PreToolUse<br/>decision-gate"]
-        pre --> exec["Tool Executes"]
-        exec --> post["PostToolUse<br/>change-tracker, trust-scorer"]
+        t1 --> exec["Tool Executes"]
+        exec --> post["PostToolUse<br/>change-tracker, trust-scorer, decision-gate"]
         post --> t1
     end
     turns -->|"Context full"| compact["⚠️ Compaction"]
@@ -250,7 +249,7 @@
           <h3>decision-gate</h3>
           <p class="desc">Per-change review with information-gain ordering and adversarial self-review for low-trust changes.</p>
           <div class="section-label">Hooks</div>
-          <div class="hook"><span class="phase">PreToolUse</span> <span class="matcher">Write|Edit|MultiEdit</span> → <code>gate-change.sh</code> <span class="dim">(10s)</span></div>
+          <div class="hook"><span class="phase">PostToolUse</span> <span class="matcher">Write|Edit|MultiEdit</span> → <code>gate-change.sh</code> <span class="dim">(10s)</span></div>
           <div class="section-label">Skills</div>
           <div class="item"><strong>review-guidance</strong></div>
           <div class="section-label">Agents</div>

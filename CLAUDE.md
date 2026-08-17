@@ -1,6 +1,6 @@
 # Crow — Agent Contract
 
-Audience: Claude. Crow watches file changes, scores each for trust with a Bayesian model, orders reviews by information gain, and preserves the decision graph across compaction.
+Audience: Claude. Crow watches file changes, runs a stateless content-detector suite that flags risky changes with a severity, orders reviews by that severity, and preserves the decision graph across compaction.
 
 ## Shared behavioral modules
 
@@ -33,43 +33,45 @@ When a module conflicts with a plugin-local instruction, the plugin wins — but
 
 | Plugin | Hook | Purpose |
 |--------|------|---------|
-| decision-gate | PostToolUse (Write\|Edit\|MultiEdit) | Advisory gate; adversarial questions for trust < 0.4 (V3, V5) |
+| decision-gate | PostToolUse (Write\|Edit\|MultiEdit) | Advisory gate; adversarial questions for flagged changes (V3, V5) |
 | change-tracker | PostToolUse (Write\|Edit\|MultiEdit) | Semantic diff compression + classification (V1) |
-| trust-scorer | PostToolUse (Write\|Edit\|MultiEdit) | Beta-Bernoulli posterior update (V2) |
+| trust-scorer | PostToolUse (Write\|Edit\|MultiEdit) | Stateless content-detector suite → flags + severity (V2) |
 | session-memory | PreCompact | Continuity graph + Exponential Strategy Averaging (V4, V6) |
 
 ## Algorithms
 
-V1 Semantic Diff Compression · V2 Bayesian Trust Scoring · V3 Information-Gain Ordering · V4 Session Continuity Graph · V5 Adversarial Self-Review · V6 Exponential Strategy Averaging. Derivations in `README.md` § *The Science Behind Crow*.
+V1 Semantic Diff Compression · V2 Content-Detector Suite · V3 Severity-Ordered Review · V4 Session Continuity Graph · V5 Adversarial Self-Review · V6 Exponential Strategy Averaging. Derivations in `README.md` § *The Science Behind Crow*.
 
 ## Behavioral contracts
 
 Markers: **[H]** hook-enforced · **[A]** advisory.
 
-1. **[H] IMPORTANT — Acknowledge the `[Crow]` stderr.** Name what was flagged, its trust score, and the change type. Silence after an advisory is a contract violation.
-2. **[A] YOU MUST pause at trust < 0.4.** Explain what you changed and why. Do not continue writing the same file without addressing the flag. If decision-gate (V5) emitted adversarial questions, answer them specifically — they're generated from the diff, not boilerplate.
-3. **[A] YOU MUST stop at trust < 0.2.** Surface to the developer: "Crow flagged this as critical. Here's what I changed and what could go wrong." Do not resume until acknowledged.
-4. **[A] Respect IG ordering.** `IG(trust) = -p log p - (1-p) log(1-p)` peaks at trust = 0.5 — uncertain changes get reviewed first, not decided ones. When surfacing a review queue, lead with the riskiest (lowest trust), not the newest.
-5. **[A] ESCALATE on override.** If the developer waives a flag, note it honestly. V6 Exponential Strategy Averaging adjusts the prior for similar future changes based on real overrides; silent dismissals poison the EMA.
-6. **[A] Restore before resume.** After compaction, read `plugins/session-memory/state/session-summary.md` and brief: "Last session: N changes, M low-trust flagged, K advisories." Then resume.
+1. **[H] IMPORTANT — Acknowledge the `[Crow]` stderr.** Name what was flagged, its severity, the flags that fired, and the change type. Silence after an advisory is a contract violation. There is no numeric trust score — never invent one.
+2. **[A] YOU MUST pause at WARNING/HIGH.** Explain what you changed and why. Do not continue writing the same file without addressing the flag. If decision-gate (V5) emitted adversarial questions, answer them specifically — they're generated from the diff, not boilerplate.
+3. **[A] YOU MUST stop at CRITICAL.** Surface to the developer: "Crow flagged this as critical (`<flag>`). Here's what I changed and what could go wrong." Do not resume until acknowledged.
+4. **[A] Respect severity ordering.** When surfacing a review queue, lead with the most severe (CRITICAL → HIGH → WARNING), not the newest. There is no information-gain / entropy ordering — that required a trust probability Crow no longer computes.
+5. **[A] ESCALATE on override.** If the developer waives a flag, note it honestly. V6 Exponential Strategy Averaging tracks per-type flag rates across sessions from real overrides; silent dismissals poison the EMA.
+6. **[A] Restore before resume.** After compaction, read `plugins/session-memory/state/session-summary.md` and brief: "Last session: N changes, M flagged, K advisories." Then resume.
 
-## Trust bands (V2)
+## Severity bands (V2)
 
-| Score | Band | Action |
-|-------|------|--------|
-| ≥ 0.8 | high | No review needed |
-| 0.4–0.8 | moderate | Optional review; mention to developer |
-| 0.2–0.4 | low | Pause; explain change; answer adversarial questions |
-| < 0.2 | critical | Stop; surface to developer |
+Severity is the max over the content-detector flags that fired. No score.
 
-Priors: all files start at Beta(2, 2), mean 0.5. Docs/tests push trust up; config/schema push it down. Reverts halve the likelihood. Sensitive files (.env, secrets) start lower. Wildcard CORS, auth removals, and deleted assertions drop trust fast.
+| Severity | Flags | Action |
+|----------|-------|--------|
+| CRITICAL | `exposed_secrets`, `gutted_test` | Stop; surface to developer |
+| HIGH | `weak_crypto`, `wildcard_cors` | Pause; explain change; answer adversarial questions |
+| WARNING | `trivial_assertions`, `very_short_file`, `debug_enabled`, `reverted` | Mention to developer; quick look |
+| clean | no flag fired | No review needed (absence of a match, not proof of correctness) |
+
+Each change is assessed statelessly from its own content — no priors, no accumulation. Wildcard CORS, weak crypto, exposed secrets, and deleted assertions flag immediately.
 
 ## State paths
 
 ```
 plugins/change-tracker/state/changes.jsonl      (append-only)
-plugins/trust-scorer/state/trust.json           (mutable, per-file Beta)
-plugins/trust-scorer/state/learnings.json       (mutable, V6 EMA priors)
+plugins/trust-scorer/state/metrics.jsonl        (append-only, change_flagged events)
+plugins/trust-scorer/state/learnings.json       (mutable, V6 EMA flag-rate priors)
 plugins/decision-gate/state/metrics.jsonl       (append-only, advisories)
 plugins/session-memory/state/session-graph.json (mutable, continuity)
 plugins/session-memory/state/session-summary.md (mutable, human-readable)
@@ -86,8 +88,9 @@ All 4 agents documented in `./plugins/*/agents/*.md` with explicit output contra
 
 ## Anti-patterns
 
-- **Queue reordering.** Presenting the review queue in your own ordering (most recent, smallest, etc). IG ordering is the product; overriding it defeats the point.
-- **Test-assertion deletion.** Removing `expect`/`assert` calls to make tests pass. V1 classifies this as `test_change` with punitive likelihood; trust collapses below 0.2 fast.
-- **Silent override.** Waiving a low-trust flag without surfacing it. V6 adapts priors from real decisions; unlogged overrides poison learning.
+- **Queue reordering.** Presenting the review queue in your own ordering (most recent, smallest, etc). Severity ordering is the product; overriding it defeats the point.
+- **Test-assertion deletion.** Removing `expect`/`assert` calls to make tests pass. The detector flags this as `gutted_test` (CRITICAL) when all assertions become trivial.
+- **Silent override.** Waiving a flag without surfacing it. V6 adapts flag-rate priors from real decisions; unlogged overrides poison learning.
 - **Re-read `changes.jsonl` every turn.** It's append-only; read once per session or when explicitly asked for fresh state. Repeated reads waste context (and trigger Emu's A5 duplicate block if co-installed).
-- **State-file mutation.** Editing `trust.json`, `changes.jsonl`, or `session-graph.json` by hand to silence a flag. Breaks V2's posterior and V6's EMA.
+- **Inventing a trust score.** Crow emits flags + a severity, never a number. Never report a "trust score", probability, or Beta parameter — they do not exist.
+- **State-file mutation.** Editing `metrics.jsonl`, `changes.jsonl`, or `session-graph.json` by hand to silence a flag. Breaks V2's detectors and V6's EMA.

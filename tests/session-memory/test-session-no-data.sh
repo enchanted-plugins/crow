@@ -12,8 +12,9 @@ echo '{"role":"user","content":"test"}' > "$MOCK_TRANSCRIPT"
 SM_STATE="${REPO_ROOT}/plugins/session-memory/state"
 
 # Clean ALL sibling state to simulate empty session
+SESSION_HASH=$(md5sum "$MOCK_TRANSCRIPT" 2>/dev/null | cut -c1-8 || echo "test")
 rm -f "${REPO_ROOT}/plugins/change-tracker/state/changes.jsonl"
-rm -f "${REPO_ROOT}/plugins/trust-scorer/state/trust.json"
+rm -f "/tmp/crow-flags-${SESSION_HASH}.jsonl"
 rm -f "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl"
 rm -f "${SM_STATE}/session-graph.json"
 rm -rf "${SM_STATE}/session-graph.json.lock"

@@ -23,13 +23,13 @@
     {
       "name": "trust-scorer",
       "source": "./plugins/trust-scorer",
-      "description": "Bayesian trust scoring of each change with prior-based confidence and posterior updates.",
+      "description": "Stateless content-detector suite that flags risky changes (exposed secrets, gutted tests, weak crypto, wildcard CORS, debug-in-prod, reverts) with a severity.",
       "category": "development"
     },
     {
       "name": "decision-gate",
       "source": "./plugins/decision-gate",
-      "description": "Per-change review with information-gain ordering and adversarial self-review for low-trust changes.",
+      "description": "Per-change review that surfaces detector-flagged changes with type-specific adversarial self-review questions.",
       "category": "development"
     },
     {

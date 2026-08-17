@@ -50,8 +50,10 @@ SESSION_HASH=$(crow_md5_file "${HOOK_TRANSCRIPT_PATH}" || echo "fallback-$$")
 # ── State directories ──
 STATE_DIR="${PLUGIN_ROOT}/state"
 CT_CHANGES="${PLUGINS_DIR}/change-tracker/state/changes.jsonl"
-TS_TRUST="${PLUGINS_DIR}/trust-scorer/state/trust.json"
 DG_METRICS="${PLUGINS_DIR}/decision-gate/state/metrics.jsonl"
+# trust-scorer no longer accumulates a per-file trust file; it records per-change
+# detector flags in an ephemeral session cache. Read that for the severity roll-up.
+FLAGS_CACHE="${CROW_CACHE_PREFIX}flags-${SESSION_HASH}.jsonl"
 
 # ── Gather change data (bounded read) ──
 CHANGES_DATA="[]"
@@ -59,10 +61,10 @@ if [[ -f "$CT_CHANGES" ]]; then
   CHANGES_DATA=$(tail -200 "$CT_CHANGES" 2>/dev/null | jq -s '.' 2>/dev/null || echo "[]")
 fi
 
-# ── Gather trust data ──
-TRUST_DATA="{}"
-if [[ -f "$TS_TRUST" ]] && jq empty "$TS_TRUST" >/dev/null 2>&1; then
-  TRUST_DATA=$(cat "$TS_TRUST")
+# ── Gather detector-flag data (bounded read) ──
+FLAGS_DATA="[]"
+if [[ -f "$FLAGS_CACHE" ]]; then
+  FLAGS_DATA=$(tail -200 "$FLAGS_CACHE" 2>/dev/null | jq -s '.' 2>/dev/null || echo "[]")
 fi
 
 # ── Gather review advisory data ──
@@ -93,13 +95,13 @@ FILE_NODES=$(printf "%s" "$CHANGES_DATA" | jq '
   .[0:50]
 ' 2>/dev/null || echo "[]")
 
-# Count trust categories
-TRUST_HIGH=$(printf "%s" "$TRUST_DATA" | jq --argjson t "$CROW_TRUST_HIGH" \
-  '[to_entries[] | select(.value.score >= $t)] | length' 2>/dev/null || echo "0")
-TRUST_LOW=$(printf "%s" "$TRUST_DATA" | jq --argjson t "$CROW_TRUST_LOW" \
-  '[to_entries[] | select(.value.score < $t)] | length' 2>/dev/null || echo "0")
-TRUST_CRITICAL=$(printf "%s" "$TRUST_DATA" | jq --argjson t "$CROW_TRUST_CRITICAL" \
-  '[to_entries[] | select(.value.score < $t)] | length' 2>/dev/null || echo "0")
+# Count severity categories (per-file — take the most recent flag record per file)
+SEV_CRITICAL=$(printf "%s" "$FLAGS_DATA" | jq '
+  [group_by(.file)[] | .[-1] | select(.severity == "CRITICAL")] | length' 2>/dev/null || echo "0")
+SEV_HIGH=$(printf "%s" "$FLAGS_DATA" | jq '
+  [group_by(.file)[] | .[-1] | select(.severity == "HIGH")] | length' 2>/dev/null || echo "0")
+SEV_WARNING=$(printf "%s" "$FLAGS_DATA" | jq '
+  [group_by(.file)[] | .[-1] | select(.severity == "WARNING")] | length' 2>/dev/null || echo "0")
 
 # Build edges from cluster relationships
 EDGES=$(printf "%s" "$CHANGES_DATA" | jq '
@@ -119,40 +121,41 @@ SESSION_GRAPH=$(jq -cn \
   --argjson nodes "$FILE_NODES" \
   --argjson edges "$EDGES" \
   --argjson total_changes "$TOTAL_CHANGES" \
-  --argjson trust_high "$TRUST_HIGH" \
-  --argjson trust_low "$TRUST_LOW" \
-  --argjson trust_critical "$TRUST_CRITICAL" \
+  --argjson sev_critical "$SEV_CRITICAL" \
+  --argjson sev_high "$SEV_HIGH" \
+  --argjson sev_warning "$SEV_WARNING" \
   --argjson reviews "$REVIEW_COUNT" \
   '{
     ts: $ts,
     session: $session,
     total_changes: $total_changes,
-    trust: {high: $trust_high, low: $trust_low, critical: $trust_critical},
+    severity: {critical: $sev_critical, high: $sev_high, warning: $sev_warning},
     reviews: $reviews,
     nodes: $nodes,
     edges: $edges
   }' 2>/dev/null)
 
 if [[ -z "$SESSION_GRAPH" ]] || [[ "$SESSION_GRAPH" == "null" ]]; then
-  SESSION_GRAPH='{"ts":"'"$TIMESTAMP"'","session":"'"$SESSION_HASH"'","total_changes":0,"trust":{"high":0,"low":0,"critical":0},"reviews":0,"nodes":[],"edges":[]}'
+  SESSION_GRAPH='{"ts":"'"$TIMESTAMP"'","session":"'"$SESSION_HASH"'","total_changes":0,"severity":{"critical":0,"high":0,"warning":0},"reviews":0,"nodes":[],"edges":[]}'
 fi
 
 # ── Build session summary markdown ──
-# Top changes by trust (riskiest first)
-TOP_RISKY=$(printf "%s" "$TRUST_DATA" | jq -r '
-  to_entries |
-  sort_by(.value.score) |
+# Flagged files (most severe first)
+TOP_FLAGGED=$(printf "%s" "$FLAGS_DATA" | jq -r '
+  [group_by(.file)[] | .[-1] | select(.severity != "clean")] |
+  sort_by(if .severity == "CRITICAL" then 0 elif .severity == "HIGH" then 1 else 2 end) |
   .[0:10] |
-  map("- \(.key) (trust: \(.value.score | tostring | .[0:4]), type: \(.value.type))") |
+  map("- \(.file) (\(.severity): \(.flags | join(", ")), type: \(.type))") |
   join("\n")
-' 2>/dev/null || echo "No trust data")
+' 2>/dev/null || echo "No flagged changes")
+[[ -z "$TOP_FLAGGED" ]] && TOP_FLAGGED="No flagged changes"
 
 # Recent review advisories
 RECENT_REVIEWS=""
 if [[ -f "$DG_METRICS" ]]; then
   RECENT_REVIEWS=$(grep '"review_advisory"' "$DG_METRICS" 2>/dev/null \
     | tail -5 \
-    | jq -r '"- \(.file) (trust: \(.score), IG: \(.ig))"' 2>/dev/null \
+    | jq -r '"- \(.file) (\(.severity): \(.flags | join(", ")))"' 2>/dev/null \
     | head -5 || true)
 fi
 RECENT_REVIEWS=${RECENT_REVIEWS:-"No review advisories issued"}
@@ -171,11 +174,11 @@ SESSION_SUMMARY=$(cat <<SUMMARY
 > Session: ${SESSION_HASH}
 > Branch: ${GIT_BRANCH:-N/A}
 
-## Trust Overview
-High trust: ${TRUST_HIGH} | Low trust: ${TRUST_LOW} | Critical: ${TRUST_CRITICAL}
+## Severity Overview
+Critical: ${SEV_CRITICAL} | High: ${SEV_HIGH} | Warning: ${SEV_WARNING}
 
-## Key Changes (${TOTAL_CHANGES} total)
-${TOP_RISKY}
+## Flagged Changes (${TOTAL_CHANGES} changes total)
+${TOP_FLAGGED}
 
 ## Review Decisions (${REVIEW_COUNT} advisories)
 ${RECENT_REVIEWS}
@@ -222,10 +225,11 @@ METRIC=$(jq -cn \
   --arg event "session_saved" \
   --arg ts "$TIMESTAMP" \
   --argjson total_changes "$TOTAL_CHANGES" \
-  --argjson trust_low "$TRUST_LOW" \
-  --argjson trust_critical "$TRUST_CRITICAL" \
+  --argjson sev_critical "$SEV_CRITICAL" \
+  --argjson sev_high "$SEV_HIGH" \
+  --argjson sev_warning "$SEV_WARNING" \
   --argjson reviews "$REVIEW_COUNT" \
-  '{event:$event, ts:$ts, total_changes:$total_changes, trust_low:$trust_low, trust_critical:$trust_critical, reviews:$reviews}')
+  '{event:$event, ts:$ts, total_changes:$total_changes, sev_critical:$sev_critical, sev_high:$sev_high, sev_warning:$sev_warning, reviews:$reviews}')
 
 log_metric "${STATE_DIR}/metrics.jsonl" "$METRIC"
 

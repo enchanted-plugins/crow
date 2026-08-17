@@ -1,11 +1,11 @@
 ---
 name: trust-assessment
 description: >
-  Explains the Bayesian trust model — alpha/beta posteriors, change-type
-  priors, revert detection — and tells the developer why a specific change
-  scored as it did. Use when trust alerts fire or developer asks about change
-  safety. Auto-triggers on: "is this safe", "trust score", "how confident",
-  "risk assessment", "should I review this", low trust stderr alert.
+  Explains Crow's content-detector suite — which red-flag patterns fire, the
+  severity they map to, and why a specific change was flagged. Use when a Crow
+  advisory fires or the developer asks about change safety. Auto-triggers on:
+  "is this safe", "why was this flagged", "what does this flag mean",
+  "risk assessment", "should I review this", a Crow severity stderr alert.
 allowed-tools:
   - Read
   - Grep
@@ -13,55 +13,67 @@ allowed-tools:
 ---
 
 <purpose>
-Explain the Bayesian trust model in plain language.
-Help the developer understand WHY a change is trusted or not.
-Be direct about risk. Never dismiss low trust scores.
+Explain Crow's content-detector findings in plain language.
+Help the developer understand WHY a change was flagged (which detector fired).
+Be direct about risk. Never dismiss a CRITICAL or HIGH finding.
 </purpose>
 
 <constraints>
-1. NEVER override trust scores with opinion — the math is the source of truth.
-2. NEVER dismiss a low trust score as "probably fine."
-3. ALWAYS explain what factors drove the score (change type, prior history, revert detection).
-4. ALWAYS show the Beta parameters (alpha, beta) when explaining scores.
+1. NEVER invent a numeric trust score, probability, or Beta parameter — Crow does
+   not compute one. The signal is the set of flags that fired.
+2. NEVER dismiss a CRITICAL/HIGH flag as "probably fine."
+3. ALWAYS name the specific detector(s) that fired and what pattern triggered them.
+4. Each change is assessed STATELESSLY — findings depend only on the change's own
+   content, not on history or a running average.
 </constraints>
 
-<decision_tree>
-IF trust is high (>= 0.8):
-  → Reassure with evidence: "This file has been consistently modified with safe patterns.
-     Beta(alpha, beta) = score. Change type: [type]."
-  → No action needed.
+<severity_map>
+- CRITICAL — exposed_secrets, gutted_test
+- HIGH     — weak_crypto, wildcard_cors
+- WARNING  — trivial_assertions, very_short_file, debug_enabled, reverted
+- clean    — no flags fired
+Severity is the max over the flags that fired.
+</severity_map>
 
-IF trust is medium (0.4 - 0.8):
-  → Explain contributing factors:
-     "Trust is moderate because [change type] has a neutral prior.
-      After [N] updates, the posterior is Beta([alpha], [beta]) = [score]."
+<decision_tree>
+IF severity is clean (no flags):
+  → "No detectors fired on this change. That is not a proof of correctness — it
+     only means none of Crow's red-flag patterns matched."
+  → No action required.
+
+IF severity is WARNING:
+  → Explain the specific flag:
+     "This was flagged [flag] because [pattern, e.g. a config sets debug=true, or
+      the new content is a revert of a prior version]. Worth a quick look."
   → Optional review recommended.
 
-IF trust is low (0.2 - 0.4):
-  → Recommend specific review:
-     "This file scored [score] due to [reason: config change / dependency / revert].
-      Review the specific change before proceeding."
+IF severity is HIGH:
+  → Recommend review:
+     "[flag] fired — e.g. weak_crypto matched an HS256/md5/eval pattern, or
+      wildcard_cors matched CORS=*. Review the specific change before proceeding."
   → Show adversarial questions from decision-gate if available.
 
-IF trust is critical (< 0.2):
+IF severity is CRITICAL:
   → Escalate clearly:
-     "CRITICAL: [file] scored [score]. This typically means [explanation].
-      Do NOT proceed without reviewing this change."
-  → Read decision-gate metrics for adversarial questions.
+     "CRITICAL: [flag] fired on [file] — exposed_secrets (a live key/secret in
+      plaintext) or gutted_test (all assertions are trivial). Do NOT proceed
+      without reviewing this change."
+  → Read decision-gate metrics/adversary-context for targeted questions.
 </decision_tree>
 
-<trust_model_explanation>
-Crow uses Beta-Bernoulli conjugate priors for trust:
-- Each file starts at Beta(2, 2) — a mildly uncertain prior (mean = 0.5)
-- Each change updates: alpha += likelihood, beta += (1 - likelihood)
-- Likelihood depends on change type: docs (0.95), tests (0.85), source (0.7), config (0.3-0.5)
-- Trust score = alpha / (alpha + beta)
-- More changes → narrower posterior → higher confidence in the score
-</trust_model_explanation>
+<detector_model_explanation>
+Crow runs a stateless content-detector suite on each Write/Edit:
+- The file's content is scanned for red-flag patterns (see severity map).
+- Each matched pattern appends a flag; the severity is the max over the flags.
+- There is NO trust score and NO cross-session accumulation. A previous
+  implementation fed a file-type constant into a Beta-Bernoulli update as if it
+  were an observation — the "posterior" just converged to the constant, so it
+  carried no real signal. That has been removed. The flags ARE the signal.
+</detector_model_explanation>
 
 <escalate_to_sonnet>
-IF trust pattern is ambiguous or contradictory:
-  "ESCALATE_TO_SONNET: ambiguous trust signals"
-IF user needs nuanced risk assessment for business-critical file:
+IF the flag context is ambiguous (e.g. a matched pattern may be a false positive):
+  "ESCALATE_TO_SONNET: ambiguous detector signal — needs content judgment"
+IF user needs nuanced risk assessment for a business-critical file:
   "ESCALATE_TO_SONNET: high-stakes risk assessment needed"
 </escalate_to_sonnet>

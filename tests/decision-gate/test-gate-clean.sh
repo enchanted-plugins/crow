@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Test: gate-change.sh produces no advisory for high-trust files
+# Test: gate-change.sh produces no advisory for a clean (unflagged) change
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -14,35 +14,30 @@ SESSION_HASH=$(md5sum "$MOCK_TRANSCRIPT" 2>/dev/null | cut -c1-8 || echo "test")
 # Clean state
 rm -f "/tmp/crow-gate-cooldown-${SESSION_HASH}"
 rm -f "/tmp/crow-changes-${SESSION_HASH}.jsonl"
+rm -f "/tmp/crow-flags-${SESSION_HASH}.jsonl"
 rm -f "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl"
 rm -rf "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl.lock"
 
-# Set up trust.json with a high-trust file
-TRUST_DIR="${REPO_ROOT}/plugins/trust-scorer/state"
-mkdir -p "$TRUST_DIR"
-echo '{"src/safe.ts": {"alpha": 8.5, "beta": 1.5, "score": 0.85, "type": "source_code", "ts": "2026-04-14T10:00:00Z"}}' > "${TRUST_DIR}/trust.json"
+# Seed the flags cache with a CLEAN assessment (no flags fired)
+echo '{"ts":"2026-04-14T10:00:00Z","file":"src/safe.ts","severity":"clean","flags":[],"type":"source_code"}' > "/tmp/crow-flags-${SESSION_HASH}.jsonl"
 
 INPUT=$(jq -n \
   --arg transcript "$MOCK_TRANSCRIPT" \
   '{transcript_path: $transcript, cwd: "/tmp", tool_name: "Write", tool_input: {file_path: "src/safe.ts"}, hook_event_name: "PostToolUse"}')
 
-# Run the hook and capture stderr
-STDERR_OUT=""
 STDERR_OUT=$(printf "%s" "$INPUT" | CLAUDE_PLUGIN_ROOT="${REPO_ROOT}/plugins/decision-gate" bash "$HOOK" 2>&1 >/dev/null || true)
 
-# Verify NO advisory was emitted
+FAIL=0
 if [[ "$STDERR_OUT" == *"[Crow]"* ]]; then
-  echo "FAIL: High-trust file should NOT trigger advisory, got: $STDERR_OUT"
-  rm -f "$MOCK_TRANSCRIPT" "${TRUST_DIR}/trust.json"
-  exit 1
+  echo "FAIL: Clean change should NOT trigger advisory, got: $STDERR_OUT"; FAIL=1
 fi
 
 # Cleanup
 rm -f "$MOCK_TRANSCRIPT"
 rm -f "/tmp/crow-gate-cooldown-${SESSION_HASH}"
 rm -f "/tmp/crow-changes-${SESSION_HASH}.jsonl"
-rm -f "${TRUST_DIR}/trust.json"
+rm -f "/tmp/crow-flags-${SESSION_HASH}.jsonl"
 rm -f "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl"
 rm -rf "${REPO_ROOT}/plugins/decision-gate/state/metrics.jsonl.lock"
 
-exit 0
+exit $FAIL

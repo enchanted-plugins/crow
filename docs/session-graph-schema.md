@@ -12,20 +12,23 @@ Path: `plugins/session-memory/state/session-graph.json`
 | `ts` | string (ISO 8601) | UTC timestamp when the graph was saved |
 | `session` | string | MD5 hash of the transcript path; identifies the session |
 | `total_changes` | integer | Number of change entries in `change-tracker/state/changes.jsonl` at save time |
-| `trust` | object | Summary counts across trust bands (see below) |
+| `severity` | object | Summary counts across detector severity bands (see below) |
 | `reviews` | integer | Number of `review_advisory` events emitted by decision-gate this session |
 | `nodes` | array | File nodes (up to 50); one per distinct file changed (see below) |
 | `edges` | array | Cluster edges (up to 20); groups of files changed together (see below) |
 
 ---
 
-## `trust` object
+## `severity` object
+
+Counts are per file, using the most recent detector flag record for each file
+(from `trust-scorer`'s session flag cache).
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `high` | integer | Count of files with trust score ≥ `CROW_TRUST_HIGH` (default 0.8) |
-| `low` | integer | Count of files with trust score < `CROW_TRUST_LOW` (default 0.4) |
-| `critical` | integer | Count of files with trust score < `CROW_TRUST_CRITICAL` (default 0.2) |
+| `critical` | integer | Count of files whose latest change flagged CRITICAL (`exposed_secrets`, `gutted_test`) |
+| `high` | integer | Count of files whose latest change flagged HIGH (`weak_crypto`, `wildcard_cors`) |
+| `warning` | integer | Count of files whose latest change flagged WARNING (`trivial_assertions`, `very_short_file`, `debug_enabled`, `reverted`) |
 
 ---
 
@@ -63,10 +66,10 @@ Only clusters with 2 or more distinct files are included.
   "ts": "2026-04-21T14:32:07Z",
   "session": "a3f9c12b8e4d6f01",
   "total_changes": 12,
-  "trust": {
-    "high": 5,
-    "low": 2,
-    "critical": 0
+  "severity": {
+    "critical": 0,
+    "high": 2,
+    "warning": 1
   },
   "reviews": 3,
   "nodes": [

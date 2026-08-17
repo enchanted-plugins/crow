@@ -7,7 +7,6 @@ cd "$REPO_ROOT"
 
 # Clean all state
 rm -f plugins/*/state/changes.jsonl plugins/*/state/metrics.jsonl
-rm -f plugins/*/state/trust.json plugins/*/state/trust.json.tmp
 rm -f plugins/*/state/session-graph.json plugins/*/state/session-summary.md
 rm -f plugins/*/state/learnings.json
 rm -rf plugins/*/state/*.lock
@@ -171,7 +170,7 @@ printf 'DATABASE_URL=postgres://prod:secret@db.internal/app\nCORS_ORIGIN=*\n' > 
 printf "  PostToolUse  → " ; run_post "$PROJ/.env" "Write" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
 
-# ── TURN 7: ANOTHER BAD .env change — pushing trust lower ──
+# ── TURN 7: ANOTHER BAD .env change — exposed secret (CRITICAL) ──
 echo " TURN 7: Claude adds API key directly in .env"
 echo ""
 
@@ -191,17 +190,22 @@ rm -f "/tmp/crow-gate-cooldown-${SESSION_HASH}" 2>/dev/null
 printf "  PostToolUse  → " ; run_pre "$PROJ/.env" 2>&1 | grep -o '\[Crow\].*' || true
 echo ""
 
-# ── SHOW THE TRUST TABLE ──
+# ── SHOW THE DETECTOR FINDINGS ──
 echo "───────────────────────────────────────────────"
 echo ""
-echo " FINAL TRUST STATE"
+echo " FINAL DETECTOR FINDINGS (severity + flags per file)"
 echo ""
 
-jq -r 'to_entries | sort_by(.value.score) | .[] |
-  "  " + (.value.score * 100 | floor / 100 | tostring | .[0:4]) +
-  "  " + (.value.type | .[0:18]) +
-  "  " + (.key | split("/") | last)' \
-  plugins/trust-scorer/state/trust.json 2>/dev/null
+grep '"change_flagged"' plugins/trust-scorer/state/metrics.jsonl 2>/dev/null \
+  | jq -rs '
+    [ .[] | {file, severity, flags, type} ]
+    | group_by(.file) | map(.[-1])
+    | sort_by(if .severity=="CRITICAL" then 0 elif .severity=="HIGH" then 1 elif .severity=="WARNING" then 2 else 3 end)
+    | .[] |
+    "  " + (.severity | .[0:8]) +
+    "  " + (.type | .[0:16]) +
+    "  " + (.file | split("/") | last) +
+    "  " + (.flags | join(", "))' 2>/dev/null
 
 echo ""
 
@@ -228,7 +232,6 @@ echo ""
 # Cleanup
 rm -rf "$PROJ" "$TRANSCRIPT"
 rm -f plugins/*/state/changes.jsonl plugins/*/state/metrics.jsonl
-rm -f plugins/*/state/trust.json plugins/*/state/trust.json.tmp
 rm -f plugins/*/state/session-graph.json plugins/*/state/session-summary.md
 rm -f plugins/*/state/learnings.json
 rm -rf plugins/*/state/*.lock

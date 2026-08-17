@@ -44,6 +44,13 @@ run_hook() {
   printf "%s" "$input" | CLAUDE_PLUGIN_ROOT="plugins/$plugin" bash "plugins/$plugin/$hook_path" 2>&1
 }
 
+FLAGS_CACHE="/tmp/crow-flags-${SESSION_HASH}.jsonl"
+# Latest "SEVERITY (flags)" recorded for a given file this session.
+finding_for() {
+  grep -F "\"file\":\"$1\"" "$FLAGS_CACHE" 2>/dev/null | tail -1 \
+    | jq -r '"\(.severity) (\(.flags | join(", ")))"' 2>/dev/null || echo "?"
+}
+
 # ── Turn 1: Claude rewrites src/auth.ts ──
 echo "── Turn 1: Write src/auth.ts (source code) ──────"
 echo 'export function verifyJWT(t) { if (t.exp < Date.now()) throw new Error("expired"); return t.valid; }' > "$PROJ/src/auth.ts"
@@ -51,8 +58,7 @@ echo 'export function verifyJWT(t) { if (t.exp < Date.now()) throw new Error("ex
 run_hook "change-tracker" "hooks/post-tool-use/track-change.sh" "$PROJ/src/auth.ts" "Write" "PostToolUse" >/dev/null
 STDERR=$(run_hook "trust-scorer" "hooks/post-tool-use/score-change.sh" "$PROJ/src/auth.ts" "Write" "PostToolUse" 2>&1 >/dev/null)
 
-SCORE=$(jq -r '[to_entries[].value.score][0] // "?"' plugins/trust-scorer/state/trust.json 2>/dev/null)
-echo "  Tracked + scored. Trust: $SCORE"
+echo "  Tracked + assessed. Finding: $(finding_for "$PROJ/src/auth.ts")"
 [[ -n "$STDERR" ]] && echo "  Alert: $STDERR"
 echo ""
 
@@ -63,12 +69,7 @@ echo 'import { verifyJWT } from "./auth"; describe("auth", () => { it("verifies"
 run_hook "change-tracker" "hooks/post-tool-use/track-change.sh" "$PROJ/tests/auth.test.ts" "Edit" "PostToolUse" >/dev/null
 STDERR=$(run_hook "trust-scorer" "hooks/post-tool-use/score-change.sh" "$PROJ/tests/auth.test.ts" "Edit" "PostToolUse" 2>&1 >/dev/null)
 
-SCORE=$(jq --arg f "$PROJ/tests/auth.test.ts" -r '.[$f].score // "?"' plugins/trust-scorer/state/trust.json 2>/dev/null)
-# Fallback: get the test entry by type
-if [[ "$SCORE" == "?" ]]; then
-  SCORE=$(jq -r '[to_entries[] | select(.value.type == "test_change")][0].value.score // "?"' plugins/trust-scorer/state/trust.json 2>/dev/null)
-fi
-echo "  Test file scored. Trust: $SCORE"
+echo "  Test file assessed. Finding: $(finding_for "$PROJ/tests/auth.test.ts")"
 echo ""
 
 # ── Turn 3: Claude writes to .env (SENSITIVE!) ──
@@ -78,8 +79,7 @@ printf 'DB_PASSWORD=hunter2\nCORS_ORIGIN=*\nAPI_KEY=sk-live-supersecret123\n' > 
 run_hook "change-tracker" "hooks/post-tool-use/track-change.sh" "$PROJ/.env" "Write" "PostToolUse" >/dev/null
 STDERR=$(run_hook "trust-scorer" "hooks/post-tool-use/score-change.sh" "$PROJ/.env" "Write" "PostToolUse" 2>&1 >/dev/null)
 
-SCORE=$(jq -r '[to_entries[] | select(.value.type == "config_change")][0].value.score // "?"' plugins/trust-scorer/state/trust.json 2>/dev/null)
-echo "  .env scored. Trust: $SCORE"
+echo "  .env assessed. Finding: $(finding_for "$PROJ/.env")"
 if [[ -n "$STDERR" ]]; then
   echo "  ALERT: $STDERR"
 fi
@@ -92,7 +92,7 @@ echo '{"cors":"*","debug":true,"logLevel":"verbose"}' > "$PROJ/config/app.json"
 run_hook "change-tracker" "hooks/post-tool-use/track-change.sh" "$PROJ/config/app.json" "Write" "PostToolUse" >/dev/null
 run_hook "trust-scorer" "hooks/post-tool-use/score-change.sh" "$PROJ/config/app.json" "Write" "PostToolUse" >/dev/null 2>&1
 
-echo "  Config tracked + scored."
+echo "  Config tracked + assessed. Finding: $(finding_for "$PROJ/config/app.json")"
 echo ""
 
 # ── Turn 5: Decision gate on .env (should fire advisory) ──
@@ -113,7 +113,7 @@ if [[ -n "$GATE_STDERR" ]]; then
   echo "$GATE_STDERR" | while IFS= read -r line; do echo "  │ $line"; done
   echo "  └──────────────────────────────────"
 else
-  echo "  (no advisory — file not in trust.json under this path)"
+  echo "  (no advisory — file not flagged under this path)"
 fi
 echo ""
 
@@ -130,7 +130,7 @@ GATE_INPUT=$(jq -n \
 GATE_STDERR=$(printf "%s" "$GATE_INPUT" | CLAUDE_PLUGIN_ROOT="plugins/decision-gate" bash plugins/decision-gate/hooks/post-tool-use/gate-change.sh 2>&1 >/dev/null)
 
 if [[ -z "$GATE_STDERR" ]]; then
-  echo "  No advisory (source code file — moderate/high trust)."
+  echo "  No advisory (source code file — no detectors fired)."
 else
   echo "  Advisory: $GATE_STDERR"
 fi
@@ -145,11 +145,11 @@ printf "%s" "$COMPACT_INPUT" | CLAUDE_PLUGIN_ROOT="plugins/session-memory" bash 
 if [[ -f "plugins/session-memory/state/session-graph.json" ]]; then
   NODES=$(jq '.nodes | length' plugins/session-memory/state/session-graph.json 2>/dev/null)
   TOTAL=$(jq '.total_changes' plugins/session-memory/state/session-graph.json 2>/dev/null)
-  T_HIGH=$(jq '.trust.high' plugins/session-memory/state/session-graph.json 2>/dev/null)
-  T_LOW=$(jq '.trust.low' plugins/session-memory/state/session-graph.json 2>/dev/null)
-  T_CRIT=$(jq '.trust.critical' plugins/session-memory/state/session-graph.json 2>/dev/null)
+  S_CRIT=$(jq '.severity.critical' plugins/session-memory/state/session-graph.json 2>/dev/null)
+  S_HIGH=$(jq '.severity.high' plugins/session-memory/state/session-graph.json 2>/dev/null)
+  S_WARN=$(jq '.severity.warning' plugins/session-memory/state/session-graph.json 2>/dev/null)
   echo "  Graph: $TOTAL changes, $NODES file nodes"
-  echo "  Trust: $T_HIGH high, $T_LOW low, $T_CRIT critical"
+  echo "  Severity: $S_CRIT critical, $S_HIGH high, $S_WARN warning"
 fi
 
 if [[ -f "plugins/session-memory/state/session-summary.md" ]]; then
@@ -158,9 +158,9 @@ fi
 echo ""
 
 # ── Python Reports ──
-echo "── Trust Report (trust-model.py) ──────────────────"
+echo "── Detector Report (trust-model.py) ───────────────"
 if command -v python3 >/dev/null 2>&1; then
-  python3 shared/scripts/trust-model.py plugins/trust-scorer/state/trust.json 2>/dev/null
+  python3 shared/scripts/trust-model.py plugins/trust-scorer/state/metrics.jsonl 2>/dev/null
 else
   echo "  (python3 not available)"
 fi
@@ -174,9 +174,9 @@ else
 fi
 echo ""
 
-# ── Raw trust.json ──
-echo "── trust.json ─────────────────────────────────────"
-jq '.' plugins/trust-scorer/state/trust.json 2>/dev/null | head -30
+# ── Raw detector metrics ──
+echo "── trust-scorer metrics.jsonl (change_flagged) ────"
+grep '"change_flagged"' plugins/trust-scorer/state/metrics.jsonl 2>/dev/null | head -30
 echo ""
 
 # ── Session Summary ──
@@ -187,7 +187,6 @@ echo ""
 # Cleanup
 rm -rf "$PROJ" "$TRANSCRIPT"
 rm -f plugins/*/state/changes.jsonl plugins/*/state/metrics.jsonl
-rm -f plugins/*/state/trust.json plugins/*/state/trust.json.tmp
 rm -f plugins/*/state/session-graph.json plugins/*/state/session-summary.md
 rm -f plugins/*/state/learnings.json
 rm -rf plugins/*/state/*.lock

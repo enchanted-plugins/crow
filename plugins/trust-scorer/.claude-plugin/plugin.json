@@ -1,16 +1,16 @@
 {
   "name": "crow-trust-scorer",
-  "description": "Bayesian trust scoring of each change with prior-based confidence and posterior updates.",
+  "description": "Stateless content-detector suite that flags risky changes (exposed secrets, gutted tests, weak crypto, wildcard CORS, debug-in-prod, reverts) and assigns a severity.",
   "version": "1.0.0",
   "author": {
     "name": "enchanter-ai"
   },
   "license": "MIT",
   "keywords": [
-    "trust",
-    "bayesian",
-    "scoring",
-    "confidence",
+    "detectors",
+    "flags",
+    "severity",
+    "code-review",
     "risk"
   ],
   "commands": [
