@@ -20,8 +20,8 @@ After cloning the Crow repo, add plugins to Claude Code:
 ## Recommended Install Order
 
 1. **change-tracker** — Install first. Foundation for all other plugins. Tracks changes and classifies them.
-2. **trust-scorer** — Install second. Reads change data and computes Bayesian trust scores.
-3. **decision-gate** — Install third. Reads trust scores and surfaces review advisories.
+2. **trust-scorer** — Install second. Reads change data and runs content-detector red-flag checks.
+3. **decision-gate** — Install third. Reads detector flags/severities and surfaces review advisories.
 4. **session-memory** — Install fourth. Aggregates data from all plugins for compaction survival.
 
 ## Plugin Dependencies

@@ -1,5 +1,5 @@
 {
-  "description": "Crow decision-gate: advisory review after file writes based on trust scores",
+  "description": "Crow decision-gate: advisory review after file writes based on detector flags",
   "hooks": {
     "PostToolUse": [
       {

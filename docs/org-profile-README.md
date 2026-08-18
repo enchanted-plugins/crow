@@ -58,7 +58,7 @@ Token management, drift detection, compaction survival.
 
 ### Crow — Change Comprehension
 
-Bayesian trust scoring, semantic-diff clustering, and information-gain decision support for Claude Code.
+content-detector flagging, semantic-diff clustering, and information-gain decision support for Claude Code.
 
 ```
 /plugin marketplace add enchanter-ai/crow

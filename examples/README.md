@@ -1,6 +1,6 @@
 # Examples
 
-Real diffs Crow scored, with the trust scores it assigned and why. Use these as calibration: if you disagree with a score, that's useful feedback — file a Discussion or an issue so the rubric can evolve.
+Real diffs Crow scanned, with the flags and severities it assigned and why. Use these as calibration: if you disagree with a score, that's useful feedback — file a Discussion or an issue so the rubric can evolve.
 
 This directory is for **reference**, not for execution. Each subdirectory is self-contained: a diff, a one-page write-up, and the score Crow produced when the example was captured.
 

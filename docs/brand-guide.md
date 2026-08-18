@@ -96,7 +96,7 @@ Every algorithm follows: `[Method] [Domain] [Action]`
 Examples:
 - Gauss Convergence Method (standard deviation minimization)
 - Shannon Entropy Analysis (information-theoretic secret detection)
-- Bayesian Trust Scoring (prior-posterior change risk assessment)
+- Content-Detector Flagging (red-flag change risk assessment)
 - Markov Drift Detection (hidden state transition recognition)
 
 ## Commit Message Standard

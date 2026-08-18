@@ -1,6 +1,6 @@
 # Getting started with Crow
 
-Crow watches every edit Claude makes and scores it. Semantic diff first, then Bayesian trust. The goal: catch untrustworthy changes before they reach your branch. This page gets you from zero to a live trust readout in under 5 minutes.
+Crow watches every edit Claude makes and scores it. Semantic diff first, then content-detector red-flag checks. The goal: catch untrustworthy changes before they reach your branch. This page gets you from zero to a live flag readout in under 5 minutes.
 
 ## 1. Install (60 seconds)
 
@@ -19,13 +19,13 @@ Start a normal Claude Code session. Ask Claude to edit any file. When the Write/
 - **Semantic diff (H1)** — what the change *means*, not just what the bytes are.
 - **Info-gain (H3)** — how surprising this change is relative to recent edits.
 
-## 3. Inspect the trust score
+## 3. Inspect the flags
 
 ```
 /trust
 ```
 
-Shows the Bayesian trust score (H2) per recent change:
+Shows the detector flags and severity (H2) per recent change:
 
 ```
 path/to/file.py    0.92  HIGH    — small scope, matches prior pattern
@@ -40,7 +40,7 @@ Trust updates live as more evidence accumulates — a change that looked risky i
 /changes
 ```
 
-Lists every edit in the current session with its trust band, grouped by file. Use this before you commit: low-trust rows are candidates for a second pair of eyes.
+Lists every edit in the current session with its severity, grouped by file. Use this before you commit: flagged rows are candidates for a second pair of eyes.
 
 ## 5. Gate a risky action
 
@@ -50,7 +50,7 @@ For destructive or cross-cutting operations, the `decision-gate` plugin inserts 
 /review
 ```
 
-Surfaces the staged changes plus Crow's trust summary in one view. You can approve, ask Claude to patch specific rows, or roll back the session to the last high-trust checkpoint.
+Surfaces the staged changes plus Crow's trust summary in one view. You can approve, ask Claude to patch specific rows, or roll back the session to the last clean checkpoint.
 
 ## 6. Continuity across compaction
 
@@ -62,9 +62,9 @@ Session-memory (H4) persists the continuity graph across compaction. When the wi
 
 ## Next steps
 
-- [examples/README.md](../examples/README.md) — real diffs + the trust scores Crow assigned them.
+- [examples/README.md](../examples/README.md) — real diffs + the flags Crow assigned them.
 - [THREAT_MODEL.md](../THREAT_MODEL.md) — attacker inputs and trust-gaming surfaces Crow is hardened against.
-- [docs/science/README.md](science/README.md) — Bayesian trust, semantic diff, info-gain, continuity, adversarial robustness, session learning — derived.
+- [docs/science/README.md](science/README.md) — content detectors, semantic diff, info-gain, continuity, adversarial robustness, session learning — derived.
 - [docs/architecture/](architecture/) — auto-generated diagram.
 
 Broken first run? → [troubleshooting.md](troubleshooting.md).

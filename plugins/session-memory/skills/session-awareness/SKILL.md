@@ -19,7 +19,7 @@ Do not guess. Do not invent. Read the files.
 <constraints>
 1. NEVER restore from memory — read the files only.
 2. NEVER continue work before announcing restoration.
-3. NEVER skip low-trust warnings from the previous session.
+3. NEVER skip flagged-change warnings from the previous session.
 4. NEVER fabricate session history.
 </constraints>
 

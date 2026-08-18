@@ -10,7 +10,7 @@ Open [index.html](index.html) in a browser to explore the architecture interacti
 
 **4 plugins. 6 algorithms (H1–H6). 3 hook phases. 15 tests.**
 
-Change-trust-review-learn loop: observe every write, score trust, surface questions on low-trust edits, and persist a continuity graph across compactions.
+Change-trust-review-learn loop: observe every write, run red-flag detectors, surface questions on flagged edits, and persist a continuity graph across compactions.
 
 ## Diagrams
 

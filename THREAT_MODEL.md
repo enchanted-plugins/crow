@@ -8,7 +8,7 @@ Crow's job is to score the trustworthiness of Claude's edits. Everything depends
 
 - Give a useful trust signal to a human reviewing Claude's changes.
 - Resist obvious attempts to inflate that signal.
-- Fail **safe**: when Crow is uncertain, it reports LOW trust and a reason, not a false-confident HIGH.
+- Fail **safe**: when Crow is uncertain, it reports a flag with a reason, rather than staying silent.
 
 ### Non-goals
 
@@ -81,11 +81,11 @@ The ways a white-box attacker might try to evade the content detectors, and the 
 
 - **Novel techniques.** Crow's adversarial defense is tuned against the attack patterns enumerated above. A genuinely novel attack shape may read cleaner than it should until the counter is updated. See [SECURITY.md](SECURITY.md) for disclosure.
 - **Tight coupling to diff structure.** Crow's detectors run over *textual* diffs. A change that is small textually but large semantically (e.g., a config value flip from `admin_check=true` to `admin_check=false`) will read as clean on structure and must rely on H3 Info-Gain to catch the semantic delta. This is the single axis most likely to miss.
-- **Per-developer learning (H6 / W5 Gauss EMA).** As Crow learns your patterns, it naturally trusts you more. A session hijack that *looks* like your style sails through. Pair Crow with Hydra's audit trail for an independent signal.
+- **Per-developer learning (H6 / W5 Gauss EMA).** As Crow learns your patterns, benign-looking changes draw fewer flags. A session hijack that *looks* like your style sails through. Pair Crow with Hydra's audit trail for an independent signal.
 
 ## Reporting issues
 
-If you have found a way to inflate a trust score that this document does not counter, please file a private security advisory — see [SECURITY.md](SECURITY.md). Include:
+If you have found a way to evade Crow's detectors or suppress a flag that this document does not counter, please file a private security advisory — see [SECURITY.md](SECURITY.md). Include:
 
 - The exact sequence of edits (verbatim, not paraphrased).
 - The score Crow assigned.

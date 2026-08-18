@@ -207,7 +207,7 @@ change-tracker/state/
 trust-scorer/state/
 ├── flags.json           # Per-file severity and detector flags (cache, not persisted history)
 ├── learnings.json       # Cross-session Exponential Strategy Averaging data
-└── metrics.jsonl        # trust_scored events
+└── metrics.jsonl        # change_flagged events
 
 decision-gate/state/
 └── metrics.jsonl        # review_advisory events
@@ -258,19 +258,19 @@ Help the developer review efficiently by showing the most uncertain changes firs
 
 <p align="center"><img src="docs/assets/math/h3-infogain.svg" alt="IG(X) = H(X) = -p log2(p) - (1-p) log2(1-p)"></p>
 
-Maximum at p = 0.5 (trust is most uncertain). Changes at trust 0.5 get reviewed first. Changes at trust 0.1 or 0.9 are already decided — low review value.
+Decision-gate orders review by detector severity — CRITICAL changes first, then HIGH, then WARNING; clean changes have low review value. (The information-gain formulation shown applied to an earlier per-change trust probability, since removed.)
 
 ### H4. Session Continuity Graph (Session Memory)
 
 Before compaction, build a semantic graph:
-- Nodes: files (with type, trust, change count), decisions (review advisories)
+- Nodes: files (with type, severity, change count), decisions (review advisories)
 - Edges: cluster relationships, file-to-decision links
 
-On resumption: "Last session: 15 changes, 2 low-trust files flagged, 3 advisories issued."
+On resumption: "Last session: 15 changes, 2 files flagged (CRITICAL/HIGH), 3 advisories issued."
 
 ### H5. Adversarial Self-Review (Decision Gate extension)
 
-For low-trust changes (trust < 0.4), generate specific adversarial questions:
+For flagged changes (WARNING severity or higher), generate specific adversarial questions:
 - "This changes the database query from parameterized to string interpolation. SQL injection risk."
 - "This test now asserts `true === true`. The original checked actual business logic."
 - "This deletes the rate limiter. Was rate limiting intentional?"

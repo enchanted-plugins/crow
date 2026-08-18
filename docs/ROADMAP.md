@@ -33,7 +33,7 @@ The first 5 plugins answer the 5 fundamental questions of AI-assisted developmen
 |---|--------|----------|------------|---------|--------|
 | 1 | **Wixie** | What did I say? (prompt quality) | Gauss Convergence, Boolean SAT, Game Theory, Cross-Domain Adaptation | v3.0.0 | Shipped — 7 plugins |
 | 2 | **Emu** | What did I spend? (token health) | Markov Drift, Shannon Compression, Linear Runway, Atomic Serialization | v2.0.0 | Shipped — 4 plugins |
-| 3 | **Crow** | What just happened? (change comprehension) | Bayesian Trust, Semantic Diff, Information-Gain, Session Continuity | v1.0.0 | Shipped — 4 sub-plugins + 1 full meta-plugin |
+| 3 | **Crow** | What just happened? (change comprehension) | Content Detectors, Semantic Diff, Information-Gain, Session Continuity | v1.0.0 | Shipped — 4 sub-plugins + 1 full meta-plugin |
 | 4 | **Hydra** | Is it safe? (security) | Aho-Corasick, Shannon Entropy, Config Poisoning, Phantom Dependency, EMA Posture Decay | v1.0.0 | Shipped — 6 plugins |
 | 5 | **Pech** | What did it cost? (spend tracking) | Exponential Smoothing, Budget Forecasting | — | Not started |
 
@@ -212,7 +212,7 @@ Every named algorithm across the ecosystem:
 | A4 | Atomic State Serialization | Emu | Bounded checkpoint persistence |
 | A5 | Content-Addressable Dedup | Emu | Hash-based read deduplication |
 | V1 | Semantic Diff Compression | Crow | Multi-file change clustering |
-| V2 | Bayesian Trust Scoring | Crow | Prior-posterior change risk assessment |
+| V2 | Content-Detector Flagging | Crow | Red-flag change risk assessment (replaced the earlier Bayesian scoring) |
 | V3 | Information-Gain Decision | Crow | Review prioritization by uncertainty reduction |
 | V4 | Session Continuity Graph | Crow | Decision-causal relationship persistence |
 | V5 | Adversarial Self-Review | Crow | Specific concern generation for risky changes |

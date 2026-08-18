@@ -1,5 +1,5 @@
 {
-  "description": "Crow trust-scorer: Bayesian trust update after every file change",
+  "description": "Crow trust-scorer: content-detector red-flag scan after every file change",
   "hooks": {
     "PostToolUse": [
       {

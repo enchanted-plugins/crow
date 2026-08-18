@@ -8,7 +8,7 @@ Crow answers *"what just happened?"* — it watches every edit and scores trust 
 
 ## Do I need the other siblings to use Crow?
 
-No. Crow is self-contained — install `full@crow` and every command works standalone. Sylph cross-references Crow's trust scores if both are installed, but Crow does not require Sylph and vice versa.
+No. Crow is self-contained — install `full@crow` and every command works standalone. Sylph cross-references Crow's change flags if both are installed, but Crow does not require Sylph and vice versa.
 
 ## How do I report a bug vs. ask a question vs. disclose a security issue?
 
@@ -24,14 +24,15 @@ No. Crow is an independent open-source plugin for [Claude Code](https://github.c
 
 ## How does Crow resist trust-inflation attacks?
 
-Every identified gaming surface — look-alike edits, gradual-drift warmups, token-splitting / encoding bypass, prompt injection via fetched content, history manipulation, reviewer-fatigue attacks — has a specific counter documented in [THREAT_MODEL.md](../THREAT_MODEL.md). The scoring path is deterministic arithmetic over the diff plus session history; it does not consult an LLM to decide trust, so content injected into a diff is treated as data, not instruction.
+Every identified gaming surface — look-alike edits, gradual-drift warmups, token-splitting / encoding bypass, prompt injection via fetched content, history manipulation, reviewer-fatigue attacks — has a specific counter documented in [THREAT_MODEL.md](../THREAT_MODEL.md). The detectors are deterministic regex/structure checks over the diff; they do not consult an LLM, so content injected into a diff is treated as data, not instruction.
 
-## What's the difference between HIGH, MEDIUM, and LOW trust?
+## What do the severities CRITICAL, HIGH, WARNING, and clean mean?
 
-Bands are advisory signal, not verdicts:
+Severity is advisory signal, not a verdict — it reflects which red-flag detectors fired:
 
-- **HIGH (≥ 0.80)** — small scope, matches prior pattern, high continuity, low info-gain. Routine.
-- **MEDIUM (0.50–0.79)** — worth a second look; nothing alarming but not boilerplate either.
-- **LOW (< 0.50)** — large rewrite, low continuity, high info-gain, or adversarial signals. Review manually.
+- **CRITICAL** — a high-harm detector fired: `exposed_secrets` or `gutted_test`. Stop and review.
+- **HIGH** — `weak_crypto` or `wildcard_cors`. Review before committing.
+- **WARNING** — `trivial_assertions`, `very_short_file`, `debug_enabled`, or `reverted`. Worth a glance.
+- **clean** — no detector fired.
 
-A LOW row can be correct; a HIGH row can be malicious. The band tells you *how much attention to spend*, not what the answer is. Full rubric in [docs/glossary.md](glossary.md).
+A clean change can still be wrong; a flagged change can be fine. Severity tells you *how much attention to spend*, not what the answer is. Crow assigns no numeric score. Full rubric in [docs/glossary.md](glossary.md).

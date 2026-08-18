@@ -1,6 +1,6 @@
 {
   "name": "crow-decision-gate",
-  "description": "Per-change review with information-gain ordering and adversarial self-review for low-trust changes.",
+  "description": "Per-change review with information-gain ordering and adversarial self-review for flagged changes.",
   "version": "1.0.0",
   "author": {
     "name": "enchanter-ai"

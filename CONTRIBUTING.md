@@ -45,7 +45,7 @@ Each plugin owns a specific concern across hook lifecycle phases:
 
 ```
 PostToolUse  →  change-tracker   (V1: semantic diff compression)
-PostToolUse  →  trust-scorer     (V2: Bayesian trust scoring)
+PostToolUse  →  trust-scorer     (V2: content-detector flagging)
 PostToolUse  →  decision-gate    (V3: info-gain ordering, V5: adversarial review)
 PreCompact   →  session-memory   (V4: continuity graph, V6: Exponential Strategy Averaging)
 ```
@@ -148,7 +148,7 @@ Register the plugin in `.claude-plugin/marketplace.json`.
 
 | File | Contents |
 |------|----------|
-| `constants.sh` | Version, file names, size limits, trust thresholds, Bayesian priors, IG lookup table |
+| `constants.sh` | Version, file names, size limits, IG lookup table |
 | `metrics.sh` | `acquire_lock()`, `release_lock()`, `log_metric()` |
 | `sanitize.sh` | `sanitize_path()`, `validate_json()`, `sanitize_for_log()` |
 | `scripts/diff-analyzer.py` | V1 deep: unified diff analysis with hunk classification |

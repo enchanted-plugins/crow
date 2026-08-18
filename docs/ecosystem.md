@@ -97,7 +97,7 @@ Total: 47 named algorithms across 12 products (6 shipped + 6 planned)
 Shipped:
   Wixie   (6):   Gauss ─── SAT ─── Game Theory ─── Adaptation ─── Verification ─── Accumulation
   Emu     (5):   Markov ─── Runway ─── Shannon ─── Atomic ─── Dedup
-  Crow    (6):   Bayesian Trust ─── Semantic Diff ─── Info-Gain ─── Continuity ─── Adversarial ─── Learning
+  Crow    (6):   Change Detectors ─── Semantic Diff ─── Info-Gain ─── Continuity ─── Adversarial ─── Learning
   Hydra   (8):   Aho-Corasick ─── Entropy ─── OWASP ─── Action ─── Config ─── Phantom ─── Overflow ─── Threat
   Sylph   (5):   Myers-Diff ─── Jaccard-Cosine ─── Workflow Classifier ─── Path-History ─── Gauss Learning (W5)
   Djinn   (5):   Hunt-Szymanski LCS ─── Baum-Welch HMM ─── Vitter Reservoir ─── PageRank Utterance-DAG ─── Gauss Accumulation (D5)

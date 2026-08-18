@@ -14,7 +14,7 @@ Claude Code resolves the four dependencies and installs:
 - `crow-change-tracker` — semantic diff compression + classification
 - `crow-decision-gate` — information-gain review + adversarial questions
 - `crow-session-memory` — continuity graph, compaction survival
-- `crow-trust-scorer` — Bayesian posterior per file change
+- `crow-trust-scorer` — content-detector severity per file change
 
 If you want to cherry-pick a single plugin (e.g. just `crow-trust-scorer`), you can — but the plugins feed each other at runtime (change-tracker → trust-scorer → decision-gate → session-memory), so you'll typically want them all.
 
