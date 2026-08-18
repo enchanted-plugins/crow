@@ -9,25 +9,25 @@
   <img alt="4 plugins" src="https://img.shields.io/badge/Plugins-4-bc8cff?style=for-the-badge">
   <img alt="6 algorithms" src="https://img.shields.io/badge/Algorithms-6-58a6ff?style=for-the-badge">
   <img alt="4 agents" src="https://img.shields.io/badge/Agents-4-d29922?style=for-the-badge">
-  <img alt="Bayesian trust scoring" src="https://img.shields.io/badge/Bayesian-Trust-f0883e?style=for-the-badge">
+  <img alt="Content-detector change flagging" src="https://img.shields.io/badge/Change-Detectors-f0883e?style=for-the-badge">
   <a href="https://www.repostatus.org/#active"><img alt="Project Status: Active" src="https://www.repostatus.org/badges/latest/active.svg"></a>
 </p>
 
 > An @enchanter-ai product — algorithm-driven, agent-managed, self-learning.
 
-Real-time change comprehension. Bayesian trust scoring. Information-gain review.
+Real-time change comprehension. Content-detector change flagging. Information-gain review.
 
 **4 plugins. 6 algorithms. 4 agents. Every change accounted for.**
 
 > Claude changed 12 files in 8 turns. I didn't read a single diff. Crow told me
-> the auth migration was safe (trust: 0.82), the config change was not (trust: 0.31),
-> and the test deletions were adversarial (trust: 0.18). I reviewed 2 files instead of 12.
+> the auth migration was clean, the config change tripped `wildcard_cors` (WARNING),
+> and the test deletions tripped `gutted_test` (CRITICAL). I reviewed 2 files instead of 12.
 
 ## TL;DR
 
 **In plain English:** Claude edited fourteen files this session. You'll skim three. Crow ranks the fourteen so the one that breaks production isn't the one you skipped.
 
-**Technically:** V2 Beta-Bernoulli posterior scoring updates a per-file trust value on every Write/Edit, seeded at Beta(2,2) and pushed by change type. V3 Information-Gain ordering `IG = H(posterior)` surfaces maximum-uncertainty files first so the two files worth reviewing float to the top. Every advisory carries `(trust_score, change_type, N)` — no advisory ships without a posterior sample count.
+**Technically:** V2 content detectors (`gutted_test`, `trivial_assertions`, `weak_crypto`, `very_short_file`, `wildcard_cors`, `exposed_secrets`, `debug_enabled`, `reverted`) scan every Write/Edit stateless — no per-file history, no persisted score — and emit a severity (CRITICAL/HIGH/WARNING/clean) plus the flag list. V3 Information-Gain ordering `IG = H(p)` surfaces the least-certain files first so the two files worth reviewing float to the top. Every advisory carries `(severity, flags, change_type)` — no advisory ships without naming which detector fired.
 
 ## Origin
 
@@ -39,7 +39,7 @@ The question this plugin answers: *What just happened?*
 
 - Reviewers drowning in AI-generated diffs who want `review the 2 risky files, not all 12`.
 - Teams who've been burned by silent destructive edits mid-session and want a scored, auditable trail.
-- Engineers who understand that *trust is evidence, not vibes* and want the Bayesian posterior to say so.
+- Engineers who understand that *risk is evidence, not vibes* and want named detectors to say so.
 
 Not for:
 
@@ -81,12 +81,12 @@ The review-and-comprehension loop eats 40-60% of every Claude Code session:
 
 ## How It Works
 
-Four plugins, one concern each, bound to specific hook points. **decision-gate** on `PostToolUse` orders pending reviews by information gain (H3) and red-teams low-trust changes (H5). **change-tracker** on `PostToolUse` classifies and clusters every diff (H1). **trust-scorer** on `PostToolUse` updates a Beta-Bernoulli posterior per file (H2). **session-memory** on `PreCompact` builds a continuity graph and persists cross-session learnings (H4, H6). The diagram below shows the bindings and state outputs.
+Four plugins, one concern each, bound to specific hook points. **decision-gate** on `PostToolUse` orders pending reviews by information gain (H3) and red-teams flagged changes (H5). **change-tracker** on `PostToolUse` classifies and clusters every diff (H1). **trust-scorer** on `PostToolUse` runs the content detectors and emits a severity + flag list per file, stateless (H2). **session-memory** on `PreCompact` builds a continuity graph and persists cross-session learnings (H4, H6). The diagram below shows the bindings and state outputs.
 
 <p align="center">
   <a href="docs/assets/pipeline.mmd" title="View hook-binding diagram source (Mermaid)">
     <img src="docs/assets/pipeline.svg"
-         alt="Crow hook bindings: Claude Code file changes fan out into decision-gate (PostToolUse · H3/H5), change-tracker (PostToolUse · H1), trust-scorer (PostToolUse · H2), session-memory (PreCompact · H4/H6); each plugin emits its own state artifact (advisory, changes.jsonl, trust.json, session-graph.json)"
+         alt="Crow hook bindings: Claude Code file changes fan out into decision-gate (PostToolUse · H3/H5), change-tracker (PostToolUse · H1), trust-scorer (PostToolUse · H2), session-memory (PreCompact · H4/H6); each plugin emits its own state artifact (advisory, changes.jsonl, flags cache, session-graph.json)"
          width="100%" style="max-width:1100px;">
   </a>
 </p>
@@ -101,17 +101,17 @@ Each plugin owns one concern. No overlap. No dependencies between plugins.
 
 ## What Makes Crow Different
 
-### It scores trust instead of flagging changes
+### It flags changes instead of guessing at trust
 
-Every Write/Edit updates a Beta-Bernoulli posterior per file. Docs push the mean up, sensitive config pushes it down, reverts halve the likelihood. After 6 changes, a file's trust posterior has narrowed enough to say "review this one" or "this one's fine" — no more rubber-stamping 12 diffs at equal weight.
+Every Write/Edit runs through the content-detector suite — `gutted_test`, `trivial_assertions`, `weak_crypto`, `very_short_file`, `wildcard_cors`, `exposed_secrets`, `debug_enabled`, `reverted`. Each detector either fires or doesn't; the run is stateless, no per-file history required. A file's result is a severity (CRITICAL/HIGH/WARNING/clean) plus the flags that fired — no more rubber-stamping 12 diffs at equal weight.
 
 ### It orders reviews by Information Gain, not diff position
 
-`IG(X) = H(trust posterior)`. Changes at trust 0.5 get reviewed first (maximum uncertainty, maximum value). Changes at trust 0.1 or 0.9 drop to the bottom — the decision is already made. You review 2 files out of 12, and they're the right 2.
+Files with the most severe flags surface first; clean files drop to the bottom — the decision is already made for them. You review 2 files out of 12, and they're the right 2.
 
 ### Adversarial questions, not generic warnings
 
-For any file under trust 0.4, the decision-gate agent generates specific adversarial questions tied to the diff content. "This changes the database query from parameterized to string interpolation — SQL injection risk." Not "consider security implications."
+For any file with a CRITICAL or HIGH flag, the decision-gate agent generates specific adversarial questions tied to the diff content and the detector that fired. "This changes the database query from parameterized to string interpolation — SQL injection risk." Not "consider security implications."
 
 ### It remembers your review patterns across sessions
 
@@ -119,12 +119,12 @@ H6 Exponential Strategy Averaging (cross-session EMA) adapts priors per file typ
 
 ## The Full Lifecycle
 
-The tool executes, then `PostToolUse` runs decision-gate (H3 IG-ranking + H5 adversarial questions on fresh trust scores), change-tracker, and trust-scorer. When context fills, `PreCompact` triggers session-memory to write `session-graph.json` before the wipe. On resume, the restorer agent reads it back autonomously.
+The tool executes, then `PostToolUse` runs decision-gate (H3 IG-ranking + H5 adversarial questions on fresh detector flags), change-tracker, and trust-scorer. When context fills, `PreCompact` triggers session-memory to write `session-graph.json` before the wipe. On resume, the restorer agent reads it back autonomously.
 
 <p align="center">
   <a href="docs/assets/lifecycle.mmd" title="View session-lifecycle diagram source (Mermaid)">
     <img src="docs/assets/lifecycle.svg"
-         alt="Crow session lifecycle: session start, file change, tool executes, PostToolUse fires decision-gate (trust-check + IG ranking), change-tracker, and trust-scorer (classify + update posterior); compaction triggers PreCompact (session-memory) to write session-graph.json; context wiped; restorer agent rebuilds; session continues"
+         alt="Crow session lifecycle: session start, file change, tool executes, PostToolUse fires decision-gate (flag-check + IG ranking), change-tracker, and trust-scorer (classify + run content detectors); compaction triggers PreCompact (session-memory) to write session-graph.json; context wiped; restorer agent rebuilds; session continues"
          width="100%" style="max-width:1100px;">
   </a>
 </p>
@@ -170,7 +170,7 @@ Without `./scripts/bootstrap.sh`, conduct imports will silently miss and Claude 
 | Plugin | Hook | Command | What |
 |--------|------|---------|------|
 | change-tracker | PostToolUse | `/crow:changes` | Semantic diff compression + classification |
-| trust-scorer | PostToolUse | `/crow:trust` | Bayesian trust scoring + alerts |
+| trust-scorer | PostToolUse | `/crow:trust` | Content-detector severity + alerts |
 | decision-gate | PostToolUse | `/crow:review` | IG-ordered review + adversarial questions |
 | session-memory | PreCompact | `/crow:session` | Continuity graph + Exponential Strategy Averaging |
 
@@ -183,7 +183,7 @@ Without `./scripts/bootstrap.sh`, conduct imports will silently miss and Claude 
 
 ## What You Get Per Session
 
-Three hook events fan out into four color-coded journals — one per sub-plugin — and converge on the enchanted-mcp bus and the `/crow:*` query surface. Color maps engines to journals: blue = change-tracker (V1 semantic-diff) · purple = trust-scorer (V2 Bayesian + V6 Exponential Strategy Averaging) · red = decision-gate (V3 info-gain) · yellow = session-memory (V4 continuity graph).
+Three hook events fan out into four color-coded journals — one per sub-plugin — and converge on the enchanted-mcp bus and the `/crow:*` query surface. Color maps engines to journals: blue = change-tracker (V1 semantic-diff) · purple = trust-scorer (V2 content detectors + V6 Exponential Strategy Averaging) · red = decision-gate (V3 info-gain) · yellow = session-memory (V4 continuity graph).
 
 <p align="center">
   <a href="docs/assets/state-flow.mmd" title="View state-flow diagram source (Mermaid)">
@@ -205,7 +205,7 @@ change-tracker/state/
 └── metrics.jsonl        # change_tracked events
 
 trust-scorer/state/
-├── trust.json           # Per-file Beta parameters and trust scores
+├── flags.json           # Per-file severity and detector flags (cache, not persisted history)
 ├── learnings.json       # Cross-session Exponential Strategy Averaging data
 └── metrics.jsonl        # trust_scored events
 
@@ -235,25 +235,22 @@ Impact radius: local (1 file), module (2-5 files), systemic (6+ files).
 
 <p align="center"><img src="docs/assets/math/h1-classify.svg" alt="classify(f) = config if .json/.yaml/.env; test if test/spec; schema if .sql/migration; source otherwise"></p>
 
-### H2. Bayesian Trust Scoring (Trust Scorer)
+### H2. Content-Detector Change Flagging (Trust Scorer)
 
-Each file change gets a trust score using Beta-Bernoulli conjugate priors.
+Each file change is run through a fixed suite of red-flag detectors, stateless — no per-file history, no persisted score.
 
-<p align="center"><img src="docs/assets/math/h2-bayes.svg" alt="P(theta | D) = P(D | theta) · P(theta) / P(D); P(theta) = Beta(alpha, beta)"></p>
-
-<p align="center"><img src="docs/assets/math/h2-update.svg" alt="alpha_new = alpha + l; beta_new = beta + (1 - l); trust = alpha / (alpha + beta)"></p>
-
-Prior: Beta(2, 2) — mildly uncertain. Update via change-type likelihood ℓ. Trust reported as the posterior mean.
-
-| Change Type | Likelihood ℓ |
+| Detector | Flags |
 |-------------|------------------|
-| Documentation | 0.95 |
-| Test changes | 0.85 |
-| Source code (small) | 0.70 |
-| Source code (large) | 0.50 |
-| Schema changes | 0.55 |
-| Dependencies | 0.50 |
-| Config (sensitive) | 0.30 |
+| `gutted_test` | Test body emptied or assertions removed |
+| `trivial_assertions` | Assertions weakened to always-true checks |
+| `weak_crypto` | Deprecated/broken crypto primitives introduced |
+| `very_short_file` | File collapsed to near-nothing |
+| `wildcard_cors` | CORS opened to `*` |
+| `exposed_secrets` | Credentials or keys committed in plaintext |
+| `debug_enabled` | Debug/verbose flags left on |
+| `reverted` | Change reverts a prior fix |
+
+Each file's result is the highest severity among its fired detectors: CRITICAL, HIGH, WARNING, or clean.
 
 ### H3. Information-Gain Decision Support (Decision Gate)
 
@@ -294,33 +291,33 @@ this developer always reviews schema changes carefully. Adapts priors accordingl
 | Command | Plugin | What |
 |---------|--------|------|
 | `/crow:changes` | change-tracker | All changes grouped by type and file |
-| `/crow:trust` | trust-scorer | Trust scores sorted riskiest-first |
+| `/crow:trust` | trust-scorer | Severities sorted riskiest-first |
 | `/crow:review` | decision-gate | IG-ranked review queue with adversarial questions |
 | `/crow:session` | session-memory | Full session dashboard |
 
-## How Trust Scoring Works
+## How Change Flagging Works
 
-1. Every file starts at Beta(2, 2) — a mildly uncertain prior (mean = 0.5).
-2. Each Write/Edit updates the posterior: high-trust types (docs, tests) push the score up, risky types (config, schema) push it down.
-3. After multiple updates, the posterior narrows — confidence increases.
-4. Reverts are penalized: if a file returns to a previous hash, the likelihood is halved.
-5. Trust scores persist across the session via `trust.json`. Cross-session learning via `learnings.json`.
+1. Every Write/Edit is run through the detector suite fresh — stateless, no prior state consulted.
+2. Each detector either fires or doesn't; there's no partial or numeric score.
+3. A file's severity is the worst of its fired detectors: CRITICAL, HIGH, WARNING, or clean.
+4. Reverts are flagged directly: if a file returns to a previous hash, `reverted` fires.
+5. Nothing persists across the session as a running score — each run's flags live in the session's flags cache, not a growing history. Cross-session pattern learning (which detector types this developer usually acts on) lives in `learnings.json`.
 
 ## How Information-Gain Ordering Works
 
-Not all files are equally worth reviewing. Crow ranks by uncertainty:
-- Trust 0.5 → IG 1.0 (maximum uncertainty — you need to look at this)
-- Trust 0.1 → IG 0.47 (clearly bad — you already know)
-- Trust 0.9 → IG 0.47 (clearly good — don't waste time)
+Not all files are equally worth reviewing. Crow ranks by severity:
+- CRITICAL/HIGH → reviewed first (acted on now)
+- WARNING → reviewed next (worth a glance)
+- clean → drops to the bottom (nothing fired, skip it)
 
-Review the uncertain files first. Skip the ones where trust is already decided.
+Review the flagged files first. Skip the ones where nothing fired.
 
 ## vs Everything Else
 
 | | Crow | Gryph | Context Mode | ClaudeWatch | Anthropic Review |
 |---|---|---|---|---|---|
 | Real-time awareness | in-session | post-hoc | — | — | post-PR |
-| Trust scoring | Bayesian | — | — | — | — |
+| Change flagging | detector-based | — | — | — | — |
 | Per-change review | IG-ordered | — | — | — | — |
 | Adversarial questions | specific | — | — | — | generic |
 | Session continuity | graph + learnings | — | — | — | — |

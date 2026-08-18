@@ -33,19 +33,19 @@ These are the surfaces that feed into Crow's scoring, ranked by attacker leverag
 | Edit content itself | The Write / Edit tool payload | High — the attacker is directly choosing what Claude writes. |
 | Prior edit history | Crow's own session log | Medium — the attacker can only influence future entries, not retroactively edit. |
 | File path and extension | Claude's tool invocation | Low — but an attacker can nudge Claude toward paths that score higher. |
-| Semantic similarity to prior edits | H1 Semantic Diff + H2 Bayesian prior | High — the attacker can *pattern-match* to low-scrutiny behaviors. |
+| Semantic similarity to prior edits | H1 Semantic Diff + H2 content detectors | High — the attacker can *pattern-match* to low-scrutiny behaviors. |
 | Surrounding continuity | H4 Continuity graph | Medium — attacker can try to *gradually* drift the session into low-scrutiny territory. |
 | Task description in the original prompt | Session context | Low — prompt is typically user-controlled. |
 
-## Trust-gaming surfaces
+## Attacking the detectors
 
-The ways a white-box attacker might try to manipulate the trust score, and the specific counter each one has.
+The ways a white-box attacker might try to evade the content detectors, and the specific counter each one has.
 
 ### 1. Look-alike edits
 
-**Attack.** The attacker crafts a malicious edit that *structurally* resembles a high-trust pattern (e.g., a typical refactor shape) while carrying a subtle payload.
+**Attack.** The attacker crafts a malicious edit that *structurally* resembles a clean, detector-quiet pattern (e.g., a typical refactor shape) while carrying a subtle payload.
 
-**Counter.** H2 Bayesian Trust uses **multiple independent evidence sources** (structural shape + semantic delta + continuity + info-gain). A shape-match alone does not drive trust high; a shape-match with low information gain raises, not lowers, suspicion — high-trust shapes with low surprise are rare in honest work.
+**Counter.** H2's detectors use **multiple independent evidence sources** (structural shape + semantic delta + continuity + info-gain), not a single pattern match. A shape-match alone does not suppress a flag; a shape-match with low information gain raises, not lowers, suspicion — quiet-looking shapes with low surprise are rare in honest work.
 
 ### 2. Gradual drift
 
@@ -67,20 +67,20 @@ The ways a white-box attacker might try to manipulate the trust score, and the s
 
 ### 5. History manipulation
 
-**Attack.** Inject entries into Crow's own session log to poison the Bayesian prior.
+**Attack.** Inject entries into Crow's own session log to bias the continuity graph so a later payload edit reads as consistent with "normal" session behavior.
 
 **Counter.** The session log is append-only under `~/.claude/crow/sessions/` and is not read from tool output. An attacker who can write to that path has already gained filesystem write outside the scope of this threat model (Hydra's territory).
 
 ### 6. Reviewer-fatigue attacks
 
-**Attack.** Flood the session with many low-risk changes, then slip a high-risk one into the stream. The reviewer skims past the HIGH-trust rows to the LOW-trust one, but inattention erodes scrutiny.
+**Attack.** Flood the session with many clean changes, then slip a flagged one into the stream. The reviewer skims past the clean rows and the CRITICAL/HIGH one along with them, but inattention erodes scrutiny.
 
-**Counter.** Not a technical defense — a process one. Crow's `/review` command groups low-trust rows at the top and summarizes the session, so a tired reviewer's default view is the risky changes. Process matters; Crow cannot substitute attention.
+**Counter.** Not a technical defense — a process one. Crow's `/review` command groups CRITICAL/HIGH-severity rows at the top and summarizes the session, so a tired reviewer's default view is the flagged changes. Process matters; Crow cannot substitute attention.
 
 ## Known limits
 
-- **Novel techniques.** Crow's adversarial defense is tuned against the attack patterns enumerated above. A genuinely novel attack shape may score higher than it should until the counter is updated. See [SECURITY.md](SECURITY.md) for disclosure.
-- **Tight coupling to diff structure.** Crow scores *textual* diffs. A change that is small textually but large semantically (e.g., a config value flip from `admin_check=true` to `admin_check=false`) will score high-trust on structure and must rely on H3 Info-Gain to catch the semantic delta. This is the single axis most likely to miss.
+- **Novel techniques.** Crow's adversarial defense is tuned against the attack patterns enumerated above. A genuinely novel attack shape may read cleaner than it should until the counter is updated. See [SECURITY.md](SECURITY.md) for disclosure.
+- **Tight coupling to diff structure.** Crow's detectors run over *textual* diffs. A change that is small textually but large semantically (e.g., a config value flip from `admin_check=true` to `admin_check=false`) will read as clean on structure and must rely on H3 Info-Gain to catch the semantic delta. This is the single axis most likely to miss.
 - **Per-developer learning (H6 / W5 Gauss EMA).** As Crow learns your patterns, it naturally trusts you more. A session hijack that *looks* like your style sails through. Pair Crow with Hydra's audit trail for an independent signal.
 
 ## Reporting issues

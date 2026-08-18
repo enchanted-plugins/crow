@@ -4,7 +4,7 @@
     "name": "enchanter-ai"
   },
   "metadata": {
-    "description": "Real-time change comprehension, Bayesian trust scoring, and information-gain decision support for Claude Code.",
+    "description": "Real-time change comprehension, content-detector change flagging, and information-gain decision support for Claude Code.",
     "version": "2.0.0"
   },
   "plugins": [
