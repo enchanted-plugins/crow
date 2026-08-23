@@ -1,6 +1,6 @@
 {
   "name": "crow-decision-gate",
-  "description": "Per-change review with information-gain ordering and adversarial self-review for flagged changes.",
+  "description": "Per-change review with detector-severity ordering and adversarial self-review for flagged changes.",
   "version": "1.0.0",
   "author": {
     "name": "enchanter-ai"
@@ -11,7 +11,7 @@
     "decision",
     "gate",
     "adversarial",
-    "information-gain"
+    "detector-severity"
   ],
   "commands": [
     "./commands/review.md"

@@ -15,7 +15,7 @@
 
 > An @enchanter-ai product — algorithm-driven, agent-managed, self-learning.
 
-Real-time change comprehension. Content-detector change flagging. Information-gain review.
+Real-time change comprehension. Content-detector change flagging. Severity-ranked review.
 
 **4 plugins. 6 algorithms. 4 agents. Every change accounted for.**
 
@@ -27,11 +27,11 @@ Real-time change comprehension. Content-detector change flagging. Information-ga
 
 **In plain English:** Claude edited fourteen files this session. You'll skim three. Crow ranks the fourteen so the one that breaks production isn't the one you skipped.
 
-**Technically:** V2 content detectors (`gutted_test`, `trivial_assertions`, `weak_crypto`, `very_short_file`, `wildcard_cors`, `exposed_secrets`, `debug_enabled`, `reverted`) scan every Write/Edit stateless — no per-file history, no persisted score — and emit a severity (CRITICAL/HIGH/WARNING/clean) plus the flag list. V3 Information-Gain ordering `IG = H(p)` surfaces the least-certain files first so the two files worth reviewing float to the top. Every advisory carries `(severity, flags, change_type)` — no advisory ships without naming which detector fired.
+**Technically:** V2 content detectors (`gutted_test`, `trivial_assertions`, `weak_crypto`, `very_short_file`, `wildcard_cors`, `exposed_secrets`, `debug_enabled`, `reverted`) scan every Write/Edit stateless — no per-file history, no persisted score — and emit a severity (CRITICAL/HIGH/WARNING/clean) plus the flag list. V3 detector-severity ordering surfaces the most severe files first so the two files worth reviewing float to the top. Every advisory carries `(severity, flags, change_type)` — no advisory ships without naming which detector fired.
 
 ## Origin
 
-**Crow** takes its name from **Alex's Mobs** — a sharp-eyed corvid that perches over disturbances, inspects every object it finds, remembers faces, and sorts friend from threat. Every AI-assisted edit is a disturbance until its diff has been read; Crow reads it for you and scores trust before it reaches main.
+**Crow** takes its name from **Alex's Mobs** — a sharp-eyed corvid that perches over disturbances, inspects every object it finds, remembers faces, and sorts friend from threat. Every AI-assisted edit is a disturbance until its diff has been read; Crow reads it for you and flags it before it reaches main.
 
 The question this plugin answers: *What just happened?*
 
@@ -59,8 +59,8 @@ Not for:
 - [Roadmap](#roadmap)
 - [The Science Behind Crow](#the-science-behind-crow)
 - [Commands](#commands)
-- [How Trust Scoring Works](#how-trust-scoring-works)
-- [How Information-Gain Ordering Works](#how-information-gain-ordering-works)
+- [How Change Flagging Works](#how-change-flagging-works)
+- [How Detector-Severity Ordering Works](#how-detector-severity-ordering-works)
 - [vs Everything Else](#vs-everything-else)
 - [Agent Conduct (11 Modules)](#agent-conduct-11-modules)
 - [Architecture](#architecture)
@@ -81,7 +81,7 @@ The review-and-comprehension loop eats 40-60% of every Claude Code session:
 
 ## How It Works
 
-Four plugins, one concern each, bound to specific hook points. **decision-gate** on `PostToolUse` orders pending reviews by information gain (H3) and red-teams flagged changes (H5). **change-tracker** on `PostToolUse` classifies and clusters every diff (H1). **trust-scorer** on `PostToolUse` runs the content detectors and emits a severity + flag list per file, stateless (H2). **session-memory** on `PreCompact` builds a continuity graph and persists cross-session learnings (H4, H6). The diagram below shows the bindings and state outputs.
+Four plugins, one concern each, bound to specific hook points. **decision-gate** on `PostToolUse` orders pending reviews by detector severity (H3) and red-teams flagged changes (H5). **change-tracker** on `PostToolUse` classifies and clusters every diff (H1). **trust-scorer** on `PostToolUse` runs the content detectors and emits a severity + flag list per file, stateless (H2). **session-memory** on `PreCompact` builds a continuity graph and persists cross-session learnings (H4, H6). The diagram below shows the bindings and state outputs.
 
 <p align="center">
   <a href="docs/assets/pipeline.mmd" title="View hook-binding diagram source (Mermaid)">
@@ -105,7 +105,7 @@ Each plugin owns one concern. No overlap. No dependencies between plugins.
 
 Every Write/Edit runs through the content-detector suite — `gutted_test`, `trivial_assertions`, `weak_crypto`, `very_short_file`, `wildcard_cors`, `exposed_secrets`, `debug_enabled`, `reverted`. Each detector either fires or doesn't; the run is stateless, no per-file history required. A file's result is a severity (CRITICAL/HIGH/WARNING/clean) plus the flags that fired — no more rubber-stamping 12 diffs at equal weight.
 
-### It orders reviews by Information Gain, not diff position
+### It orders reviews by detector severity, not diff position
 
 Files with the most severe flags surface first; clean files drop to the bottom — the decision is already made for them. You review 2 files out of 12, and they're the right 2.
 
@@ -119,12 +119,12 @@ H6 Exponential Strategy Averaging (cross-session EMA) adapts priors per file typ
 
 ## The Full Lifecycle
 
-The tool executes, then `PostToolUse` runs decision-gate (H3 IG-ranking + H5 adversarial questions on fresh detector flags), change-tracker, and trust-scorer. When context fills, `PreCompact` triggers session-memory to write `session-graph.json` before the wipe. On resume, the restorer agent reads it back autonomously.
+The tool executes, then `PostToolUse` runs decision-gate (H3 severity-ranking + H5 adversarial questions on fresh detector flags), change-tracker, and trust-scorer. When context fills, `PreCompact` triggers session-memory to write `session-graph.json` before the wipe. On resume, the restorer agent reads it back autonomously.
 
 <p align="center">
   <a href="docs/assets/lifecycle.mmd" title="View session-lifecycle diagram source (Mermaid)">
     <img src="docs/assets/lifecycle.svg"
-         alt="Crow session lifecycle: session start, file change, tool executes, PostToolUse fires decision-gate (flag-check + IG ranking), change-tracker, and trust-scorer (classify + run content detectors); compaction triggers PreCompact (session-memory) to write session-graph.json; context wiped; restorer agent rebuilds; session continues"
+         alt="Crow session lifecycle: session start, file change, tool executes, PostToolUse fires decision-gate (flag-check + severity ranking), change-tracker, and trust-scorer (classify + run content detectors); compaction triggers PreCompact (session-memory) to write session-graph.json; context wiped; restorer agent rebuilds; session continues"
          width="100%" style="max-width:1100px;">
   </a>
 </p>
@@ -171,7 +171,7 @@ Without `./scripts/bootstrap.sh`, conduct imports will silently miss and Claude 
 |--------|------|---------|------|
 | change-tracker | PostToolUse | `/crow:changes` | Semantic diff compression + classification |
 | trust-scorer | PostToolUse | `/crow:trust` | Content-detector severity + alerts |
-| decision-gate | PostToolUse | `/crow:review` | IG-ordered review + adversarial questions |
+| decision-gate | PostToolUse | `/crow:review` | Severity-ordered review + adversarial questions |
 | session-memory | PreCompact | `/crow:session` | Continuity graph + Exponential Strategy Averaging |
 
 | Agent | Model | Plugin | What |
@@ -183,7 +183,7 @@ Without `./scripts/bootstrap.sh`, conduct imports will silently miss and Claude 
 
 ## What You Get Per Session
 
-Three hook events fan out into four color-coded journals — one per sub-plugin — and converge on the enchanted-mcp bus and the `/crow:*` query surface. Color maps engines to journals: blue = change-tracker (V1 semantic-diff) · purple = trust-scorer (V2 content detectors + V6 Exponential Strategy Averaging) · red = decision-gate (V3 info-gain) · yellow = session-memory (V4 continuity graph).
+Three hook events fan out into four color-coded journals — one per sub-plugin — and converge on the enchanted-mcp bus and the `/crow:*` query surface. Color maps engines to journals: blue = change-tracker (V1 semantic-diff) · purple = trust-scorer (V2 content detectors + V6 Exponential Strategy Averaging) · red = decision-gate (V3 detector-severity ranking) · yellow = session-memory (V4 continuity graph).
 
 <p align="center">
   <a href="docs/assets/state-flow.mmd" title="View state-flow diagram source (Mermaid)">
@@ -252,9 +252,9 @@ Each file change is run through a fixed suite of red-flag detectors, stateless �
 
 Each file's result is the highest severity among its fired detectors: CRITICAL, HIGH, WARNING, or clean.
 
-### H3. Information-Gain Decision Support (Decision Gate)
+### H3. Detector-Severity Decision Support (Decision Gate)
 
-Help the developer review efficiently by showing the most uncertain changes first.
+Help the developer review efficiently by showing the most severe changes first.
 
 <p align="center"><img src="docs/assets/math/h3-infogain.svg" alt="IG(X) = H(X) = -p log2(p) - (1-p) log2(1-p)"></p>
 
@@ -292,7 +292,7 @@ this developer always reviews schema changes carefully. Adapts priors accordingl
 |---------|--------|------|
 | `/crow:changes` | change-tracker | All changes grouped by type and file |
 | `/crow:trust` | trust-scorer | Severities sorted riskiest-first |
-| `/crow:review` | decision-gate | IG-ranked review queue with adversarial questions |
+| `/crow:review` | decision-gate | Severity-ranked review queue with adversarial questions |
 | `/crow:session` | session-memory | Full session dashboard |
 
 ## How Change Flagging Works
@@ -303,7 +303,7 @@ this developer always reviews schema changes carefully. Adapts priors accordingl
 4. Reverts are flagged directly: if a file returns to a previous hash, `reverted` fires.
 5. Nothing persists across the session as a running score — each run's flags live in the session's flags cache, not a growing history. Cross-session pattern learning (which detector types this developer usually acts on) lives in `learnings.json`.
 
-## How Information-Gain Ordering Works
+## How Detector-Severity Ordering Works
 
 Not all files are equally worth reviewing. Crow ranks by severity:
 - CRITICAL/HIGH → reviewed first (acted on now)
@@ -318,7 +318,7 @@ Review the flagged files first. Skip the ones where nothing fired.
 |---|---|---|---|---|---|
 | Real-time awareness | in-session | post-hoc | — | — | post-PR |
 | Change flagging | detector-based | — | — | — | — |
-| Per-change review | IG-ordered | — | — | — | — |
+| Per-change review | severity-ordered | — | — | — | — |
 | Adversarial questions | specific | — | — | — | generic |
 | Session continuity | graph + learnings | — | — | — | — |
 | Cross-session learning | Gauss EMA | — | — | — | — |
