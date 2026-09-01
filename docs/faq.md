@@ -35,4 +35,4 @@ Severity is advisory signal, not a verdict — it reflects which red-flag detect
 - **WARNING** — `trivial_assertions`, `very_short_file`, `debug_enabled`, or `reverted`. Worth a glance.
 - **clean** — no detector fired.
 
-A clean change can still be wrong; a flagged change can be fine. Severity tells you *how much attention to spend*, not what the answer is. Crow assigns no numeric score. Full rubric in [docs/glossary.md](glossary.md).
+A clean change can still be wrong; a flagged change can be fine. Severity tells you *how much attention to spend*, not what the answer is. Crow assigns no numeric score. The full severity rubric is the four levels listed above.
