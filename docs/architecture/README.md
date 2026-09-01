@@ -8,7 +8,7 @@ Open [index.html](index.html) in a browser to explore the architecture interacti
 
 ## At a Glance
 
-**4 plugins. 6 algorithms (H1–H6). 3 hook phases. 15 tests.**
+**4 plugins. 6 algorithms (H1–H6). 3 hook phases. 12 unit tests (+3 harness scripts).**
 
 Change-trust-review-learn loop: observe every write, run red-flag detectors, surface questions on flagged edits, and persist a continuity graph across compactions.
 
@@ -65,7 +65,7 @@ Full derivations: [docs/science/README.md](../science/README.md).
 
 ## Test Coverage
 
-15 tests across all plugins + shared utilities:
+12 unit tests across all plugins + shared utilities, plus 3 harness scripts (demo, integration, runner):
 
 ```
 tests/
